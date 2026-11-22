@@ -12,7 +12,7 @@ This file records current product and technical decisions. Update it when a mate
 | D-006 | Project workbench has four fixed resizable panels | Accepted | Docs, Todos, Activity, Resources; no arbitrary dashboard editor |
 | D-007 | Repo Docs are primary working copy; Merlin Project Store is backup | Accepted | Preserves normal repository/editor workflow while providing recovery |
 | D-008 | Docs synchronization uses three-way reconciliation | Accepted | Prevents silent overwrites and handles offline edits |
-| D-009 | Milkdown is the Markdown editor candidate | Conditional | Must pass round-trip compatibility tests |
+| D-009 | Milkdown is the Markdown editor candidate for sources with an exact measured round trip | Conditional for full Docs | The real editor round trip passed for supported proof inputs; source fallback remains mandatory for serialization drift, frontmatter, HTML/MDX, images, CRLF, and unsupported syntax. Full Docs workflows remain unimplemented |
 | D-010 | Tauri 2 + React + TypeScript + Vite | Accepted | Desktop/native boundary with familiar web UI stack |
 | D-011 | SQLite is local structured persistence | Accepted | Simple, durable local data store |
 | D-012 | API secrets use Windows Credential Manager | Accepted | Keeps raw secrets out of normal application data |
@@ -40,14 +40,19 @@ This file records current product and technical decisions. Update it when a mate
 | D-034 | Resource availability is derived from separate ownership, account, and allowance states | Accepted | Prevents ownership/readiness conflation, double-counted shared balances, and false claims about unknown capacity |
 | D-035 | Docs sync uses persisted operations and pauses propagation across Git context changes | Accepted | SQLite cannot atomically include filesystem writes; operation records, verification, recovery, and branch/HEAD context prevent silent loss or resurrection |
 | D-036 | Each phase has outcome-based verification gates before commands are chosen | Accepted | Required test categories are explicit now; exact scripts follow the initialized scaffold and actual tooling |
-| D-037 | Phase 0 toolchain baseline is Windows 11, Node.js 24.22.1, pnpm 12.15.0, and Rust 1.97.0 | Accepted | Compatibility must be proven against the actual development environment; tools are not downgraded without demonstrated need |
+| D-037 | Phase 0 toolchain baseline is Windows 11, Node.js 24.22.1, pnpm 12.15.0, and Rust 1.97.1 | Accepted | User approved the installed Rust patch release on 2026-11-22; all proposed direct crates declare MSRV no later than 1.92, and an unnecessary downgrade to 1.97.0 is avoided. Runtime compatibility must still pass Phase 0 |
+| D-038 | Initial UI SDK proof pins `@ui-sdk/react` and `@ui-sdk/core` to 0.1.0-beta.13 | Accepted for Phase 0 | Real WebView2 pointer, keyboard, focus, collapse/restore, reset, and SQLite restart-persistence proofs passed. Persistence continues through `onLayoutCommit` and typed commands; `autoSaveId` and browser localStorage remain prohibited |
+| D-039 | TypeScript is pinned to 6.0.3 | Accepted for Phase 0 | `typescript-eslint` 8.73.0 declares support below 6.1.0, so latest TypeScript 7.0.2 is not an approved compatible choice |
+| D-040 | SQLite uses rusqlite 0.41.0 with bundled SQLite and refinery 0.10.0 | Accepted for Phase 0 | Refinery-core 0.10.1 declares rusqlite support through 0.41; bundled SQLite avoids a system-database prerequisite. Migration/build proof remains required |
+| D-041 | Phase 0 packaged-build proof targets NSIS | Accepted for Phase 0 | NSIS meets the Windows packaged-build gate without the MSI-only VBSCRIPT prerequisite; MSI support remains undecided |
+| D-042 | Merlin uses one root application package, not a pnpm monorepo | Accepted | The documented root `src/` and `src-tauri/` boundaries are sufficient and avoid unnecessary workspace abstraction |
+| D-043 | Vitest and Playwright provide frontend, browser, and WebView2 test infrastructure | Accepted for Phase 0 | Vitest covers deterministic logic and component tests; Playwright supports real Chromium and WebView2 interaction/accessibility proofs |
+| D-044 | Phase execution status and resume authorization are tracked in root `BUILD-STATUS.md` | Accepted | The user requires a persistent handoff record containing progress, completed/outstanding work, actual verification results, blockers, decisions, and the exact authorized next task |
+| D-045 | Phase 0 uses `rehype-raw` 7.0.0 before the explicit sanitizer and controlled React renderer | Accepted for Phase 0 | Raw HTML must be parsed into an AST without injecting or executing document HTML; this package is narrowly required for the sanitizer proof and does not replace Milkdown or add remote fetching |
+| D-046 | The packaged `ui-sdk` coding-agent skill is approved only for repository-local use | Accepted for tooling | User approved installation during final Phase 0 hygiene. `pnpm-workspace.yaml` grants `@ui-sdk/core` skill permission and restricts links to `.agents/skills`; `.agents/skills/pnpm-@ui-sdk+core-ui-sdk` is an ignored symlink into the exact installed beta.13 package and is recreated by pnpm. No lifecycle build is required, no global skill is installed, and this does not authorize the deferred UI SDK Agent Bridge or product agent features |
 
-## Open implementation validations
+## Implementation validation handoff
 
-These are engineering proofs, not unresolved product choices:
-- Verify exact package versions and UI SDK APIs during Phase 0 on the D-037 toolchain baseline, including resizable panels, keyboard interaction, collapse/restore, and SQLite-backed layout persistence.
-- Verify Milkdown round-trip preservation and the sanitized, capability-free Markdown rendering boundary.
-- Verify Windows Credential Manager integration and the Windows OS-backed protection mechanism for sensitive private attachments, including documented backup/recovery limits.
-- Verify Rust filesystem watcher, persisted sync-operation recovery, atomic replacement behavior, and Git branch/HEAD reconciliation behavior.
-- Finalize the full Merlin Dark neutral surface/text ramp and run contrast validation.
-- Verify 0.5px border rendering at common Windows display scaling settings.
+Phase 0 runtime outcomes and exact commands are recorded in root `BUILD-STATUS.md`. The proofs validate the approved stack and constrained primitives; they do not implement full Docs synchronization or production attachment storage.
+
+Remaining product-phase validations include real repository/editor Docs workflows, full three-way reconciliation, real crash and power-loss durability testing, junction/concurrent-link race hardening, production attachment envelope versioning and recovery UX, and physical testing at display scales other than the current Windows 100% setting. Chromium DPR emulation at 100/125/150/200% and the current real WebView2 scale passed the Phase 0 hairline checks.

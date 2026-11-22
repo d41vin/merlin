@@ -1,0 +1,12 @@
+node_modules/
+.tools/
+dist/
+src-tauri/target/
+src-tauri/gen/schemas/.ds_store
+test-results/
+playwright-report/
+coverage/
+*.tsbuildinfo
+*.local
+.DS_Store
+Thumbs.db

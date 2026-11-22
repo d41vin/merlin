@@ -1,0 +1,15 @@
+node_modules/
+.tools/
+dist/
+src-tauri/target/
+pnpm-lock.yaml
+Cargo.lock
+package-lock.json
+docs/
+README.md
+AGENTS.md
+BUILD-STATUS.md
+playwright-report/
+test-results/
+coverage/
+src-tauri/gen/

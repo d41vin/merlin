@@ -41,6 +41,8 @@ Before implementation:
 
 ## UI SDK
 
+- Use the packaged `ui-sdk` coding-agent skill for UI SDK work. Its approval and `.agents/skills` link are repository-local through `pnpm-workspace.yaml`; the generated `pnpm-*` link is ignored and recreated by pnpm. This tooling skill does not authorize the deferred UI SDK Agent Bridge or other product agent features.
+
 Use exact pinned versions of `@ui-sdk/react` and `@ui-sdk/core`. Before implementing a UI SDK behavior:
 - Read the installed package documentation, especially `node_modules/@ui-sdk/react/docs/llms.txt` when present.
 - Inspect the installed API and examples; do not rely on memory of beta APIs.
@@ -78,3 +80,14 @@ Do not invent test commands before the scaffold and actual tooling exist. Do not
 - Update the relevant documentation and `docs/DECISIONS.md` when a material decision changes.
 - Prefer small, reviewable commits.
 - Do not delete or overwrite existing project files without inspecting them first.
+
+## Build status and handoff
+
+- Keep root `BUILD-STATUS.md` current at every phase completion, before every handoff, and whenever resuming an interrupted session.
+- Record actual verification commands and outcomes, unexecuted tests, failures, blockers, approved decisions, and the exact next authorized task.
+- Never mark work complete merely because code exists; every relevant documented verification gate must pass.
+- Check `BUILD-STATUS.md` before resuming work. Do not advance beyond its exact authorization.
+
+## commits
+
+- Use conventional atomic commit message(s). Include appropriate description if needed.

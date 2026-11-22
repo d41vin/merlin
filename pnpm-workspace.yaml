@@ -1,0 +1,6 @@
+permissions:
+  "@ui-sdk/core":
+    skills: true
+skills:
+  dirs:
+    - .agents/skills

@@ -19,7 +19,7 @@ The exact scripts and test runners are intentionally not prescribed before the s
 ## Phase 0 — Technical preflight
 
 Prove:
-- Tauri 2 desktop build on Windows 11 with Node.js 24.22.1, pnpm 12.15.0, and Rust 1.97.0.
+- Tauri 2 desktop build on Windows 11 with Node.js 24.22.1, pnpm 12.15.0, and Rust 1.97.1.
 - React/Vite/Tailwind v4/shadcn Base UI.
 - The exact pinned beta versions of `@ui-sdk/react` and `@ui-sdk/core` for resizable panels, pointer and keyboard resize, focus behavior, collapse/restore, reset, and SQLite-backed layout persistence across restart. Do not use browser localStorage.
 - Milkdown Markdown round-trip compatibility and safe rendering of the resulting source.

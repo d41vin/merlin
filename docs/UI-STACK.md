@@ -14,7 +14,7 @@
 - SQLite
 - Rust native services
 
-Pin exact versions in the package manager lockfile. Verify compatibility during technical preflight on Windows 11 with Node.js 24.22.1, pnpm 12.15.0, and Rust 1.97.0. Do not downgrade those tools without a demonstrated compatibility reason recorded in `DECISIONS.md`.
+Pin exact versions in the package manager lockfile. Verify compatibility during technical preflight on Windows 11 with Node.js 24.22.1, pnpm 12.15.0, and Rust 1.97.1. Do not downgrade those tools without a demonstrated compatibility reason recorded in `DECISIONS.md`.
 
 ## 2. Responsibility boundaries
 
@@ -75,7 +75,7 @@ Run the contrast validator as part of CI.
 ## 6. Technical preflight
 
 Before building the complete application:
-1. Verify Tauri 2 builds and runs on Windows 11 with Node.js 24.22.1, pnpm 12.15.0, and Rust 1.97.0.
+1. Verify Tauri 2 builds and runs on Windows 11 with Node.js 24.22.1, pnpm 12.15.0, and Rust 1.97.1.
 2. Verify React/Vite/Tailwind v4/shadcn Base UI integration.
 3. Verify the exact pinned UI SDK packages through a resizable-panel proof covering pointer and keyboard resize, focus, collapse/restore, reset, and SQLite-backed persistence across restart without browser localStorage.
 4. Verify Milkdown round-trip behavior for frontmatter, tables, Mermaid, code blocks, task lists, HTML/MDX, plus the document renderer's sanitization, safe URL handling, MDX non-execution, and absence of Tauri capabilities.

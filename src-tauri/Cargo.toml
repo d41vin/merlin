@@ -1,0 +1,44 @@
+[package]
+name = "merlin-preflight"
+version = "0.1.0"
+description = "Merlin Phase 0 native technical preflight"
+edition = "2021"
+rust-version = "1.97.1"
+
+[lib]
+name = "merlin_preflight"
+crate-type = ["rlib"]
+
+[build-dependencies]
+tauri-build = { version = "=2.7.6", features = [] }
+
+[dependencies]
+tauri = { version = "=2.12.7", features = [] }
+serde = { version = "=1.0.229", features = ["derive"] }
+serde_json = { version = "=1.0.154" }
+thiserror = { version = "=2.0.21" }
+rusqlite = { version = "=0.41.0", features = ["bundled"] }
+refinery = { version = "=0.10.0", default-features = false, features = ["rusqlite"] }
+notify = { version = "=9.0.0" }
+keyring = { version = "=4.2.0" }
+aes-gcm = { version = "=0.11.1", features = ["zeroize"] }
+zeroize = { version = "=1.9.2", features = ["derive"] }
+sha2 = { version = "=0.11.1" }
+hex = { version = "=0.4.3" }
+uuid = { version = "=1.29.3", features = ["v4"] }
+time = { version = "=0.3.55", features = ["formatting", "parsing", "macros"] }
+
+[target.'cfg(windows)'.dependencies]
+windows = { version = "=0.62.2", features = [
+    "Win32_Foundation",
+    "Win32_Security_Cryptography",
+    "Win32_System_Memory",
+    "Win32_Storage_FileSystem",
+    "Win32_UI_Shell",
+] }
+
+[dev-dependencies]
+tempfile = { version = "=3.27.0" }
+
+[features]
+custom-protocol = ["tauri/custom-protocol"]

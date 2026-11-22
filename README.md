@@ -28,7 +28,7 @@ It is designed for one person's real workflow, not as a generic team productivit
 - Windows Credential Manager for API secrets
 - Lucide React icons
 
-Pin dependency versions. The Phase 0 compatibility baseline is Windows 11, Node.js 24.22.1, pnpm 12.15.0, and Rust 1.97.0. Verify the selected package versions against that baseline during technical preflight; do not downgrade a tool without a demonstrated compatibility reason recorded in `docs/DECISIONS.md`.
+Pin dependency versions. The Phase 0 compatibility baseline is Windows 11, Node.js 24.22.1, pnpm 12.15.0, and Rust 1.97.1. Verify the selected package versions against that baseline during technical preflight; do not downgrade a tool without a demonstrated compatibility reason recorded in `docs/DECISIONS.md`.
 
 ## Repository structure
 
@@ -61,27 +61,35 @@ Prerequisites:
 - Windows 11
 - Node.js 24.22.1
 - pnpm 12.15.0
-- Rust 1.97.0
+- Rust 1.97.1
 - Microsoft C++ Build Tools and Windows SDK as required by Tauri
 - WebView2 Runtime
 
-Initial setup commands (adjust only when the chosen scaffold requires it):
+Initial setup commands:
 
 ```bash
 pnpm install
+pnpm setup:rust
+pnpm exec playwright install chromium
 pnpm tauri dev
 ```
+
+Native commands use the exact Rust 1.97.1 toolchain and Cargo cache under the ignored `.tools/` directory. `pnpm setup:rust` creates that isolated toolchain; do not substitute a different compiler.
 
 Useful checks:
 
 ```bash
+pnpm format:check
 pnpm typecheck
 pnpm lint
 pnpm test
+pnpm test:e2e
+pnpm test:webview2
 pnpm build
+pnpm tauri build
 ```
 
-Add scripts only when they are backed by actual configured tools. Do not leave placeholder scripts that appear to pass. The phase plans define required verification outcomes; add the exact commands only after the scaffold and test tooling exist.
+The scripts are backed by the configured Phase 0 tools. `BUILD-STATUS.md` records their actual verification outcomes and the limits of each proof.
 
 ## Documentation index
 
