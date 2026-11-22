@@ -1,0 +1,24 @@
+{
+  "project": "Merlin",
+  "files": [
+    "AGENTS.md",
+    "README.md",
+    "docs/ARCHITECTURE.md",
+    "docs/DATA-MODEL.md",
+    "docs/DECISIONS.md",
+    "docs/DESIGN-SYSTEM.md",
+    "docs/DOCS-AND-VAULT.md",
+    "docs/IMPLEMENTATION-PLAN.md",
+    "docs/PRD.md",
+    "docs/SECURITY.md",
+    "docs/UI-STACK.md",
+    "docs/UX-SPEC.md",
+    "docs/design-tokens.md"
+  ],
+  "notes": [
+    "Documentation handoff; not application source code.",
+    "Merlin Dark is the only v1 theme.",
+    "Run Phase 0 technical preflight before broad implementation.",
+    "Validate the final neutral palette and contrast script during implementation."
+  ]
+}
