@@ -13,8 +13,8 @@ use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 use uuid::Uuid;
 
 use crate::db::sync::{SyncOperation, SyncSide, SyncState};
-use crate::db::PreflightDatabase;
-use crate::error::{PreflightError, PreflightErrorCode};
+use crate::db::AppDatabase;
+use crate::error::{AppError, AppErrorCode};
 use crate::filesystem::hash::{normalize_expected_hash, sha256_file};
 use crate::filesystem::path::RegisteredRoot;
 
@@ -58,14 +58,14 @@ pub struct SyncReport {
 }
 
 pub struct SyncService<'a> {
-    database: &'a PreflightDatabase,
+    database: &'a AppDatabase,
     source_root: RegisteredRoot,
     destination_root: RegisteredRoot,
 }
 
 impl<'a> SyncService<'a> {
     pub fn new(
-        database: &'a PreflightDatabase,
+        database: &'a AppDatabase,
         source_root: RegisteredRoot,
         destination_root: RegisteredRoot,
     ) -> Self {
@@ -80,7 +80,7 @@ impl<'a> SyncService<'a> {
         &self,
         request: &SyncRequest,
         interruption: Option<InterruptionPoint>,
-    ) -> Result<SyncReport, PreflightError> {
+    ) -> Result<SyncReport, AppError> {
         let mut operation = self.prepare(request)?;
         self.database.insert_sync_operation(&operation)?;
         if interruption == Some(InterruptionPoint::AfterPrepared) {
@@ -108,13 +108,13 @@ impl<'a> SyncService<'a> {
         &self,
         operation_id: &str,
         current_repository_context: &str,
-    ) -> Result<SyncReport, PreflightError> {
+    ) -> Result<SyncReport, AppError> {
         let operation = self
             .database
             .get_sync_operation(operation_id)?
             .ok_or_else(|| {
-                PreflightError::new(
-                    PreflightErrorCode::RecoveryRequired,
+                AppError::new(
+                    AppErrorCode::RecoveryRequired,
                     "sync operation record is unavailable",
                 )
             })?;
@@ -141,7 +141,7 @@ impl<'a> SyncService<'a> {
         };
 
         match result {
-            Err(error) if error.code != PreflightErrorCode::Database => self.pause(previous),
+            Err(error) if error.code != AppErrorCode::Database => self.pause(previous),
             other => other,
         }
     }
@@ -149,7 +149,7 @@ impl<'a> SyncService<'a> {
     pub fn recover_all(
         &self,
         current_repository_context: &str,
-    ) -> Result<Vec<SyncReport>, PreflightError> {
+    ) -> Result<Vec<SyncReport>, AppError> {
         let operations = self.database.list_incomplete_sync_operations()?;
         let mut reports = Vec::with_capacity(operations.len());
         for operation in operations {
@@ -162,14 +162,14 @@ impl<'a> SyncService<'a> {
         &self,
         operation: SyncOperation,
         current_repository_context: &str,
-    ) -> Result<SyncReport, PreflightError> {
+    ) -> Result<SyncReport, AppError> {
         // Use the same public path so recovery_required records can never be resumed accidentally.
         self.recover(&operation.operation_id, current_repository_context)
     }
 
-    fn prepare(&self, request: &SyncRequest) -> Result<SyncOperation, PreflightError> {
+    fn prepare(&self, request: &SyncRequest) -> Result<SyncOperation, AppError> {
         if request.source_side == request.destination_side {
-            return Err(PreflightError::conflict(
+            return Err(AppError::conflict(
                 "sync source and destination sides must differ",
             ));
         }
@@ -179,7 +179,7 @@ impl<'a> SyncService<'a> {
                 .chars()
                 .any(|character| character.is_control())
         {
-            return Err(PreflightError::conflict(
+            return Err(AppError::conflict(
                 "repository context must be a nonempty, control-free identity",
             ));
         }
@@ -189,7 +189,7 @@ impl<'a> SyncService<'a> {
         let expected_destination_hash =
             normalize_expected_hash(&request.expected_destination_hash)?;
         if baseline_hash != expected_destination_hash {
-            return Err(PreflightError::conflict(
+            return Err(AppError::conflict(
                 "prototype baseline must match the expected destination hash",
             ));
         }
@@ -201,26 +201,26 @@ impl<'a> SyncService<'a> {
             .destination_root
             .resolve_existing_file(&request.destination_path)?;
         if source_path == destination_path {
-            return Err(PreflightError::conflict(
+            return Err(AppError::conflict(
                 "source and destination must be different files",
             ));
         }
 
         if sha256_file(&source_path)? != expected_source_hash {
-            return Err(PreflightError::conflict(
+            return Err(AppError::conflict(
                 "source hash changed before sync intent was prepared",
             ));
         }
         if sha256_file(&destination_path)? != expected_destination_hash {
-            return Err(PreflightError::conflict(
+            return Err(AppError::conflict(
                 "destination no longer matches the supplied baseline",
             ));
         }
 
         let operation_id = Uuid::new_v4().to_string();
         let parent = destination_path.parent().ok_or_else(|| {
-            PreflightError::new(
-                PreflightErrorCode::PathUnavailable,
+            AppError::new(
+                AppErrorCode::PathUnavailable,
                 "destination has no parent directory",
             )
         })?;
@@ -246,7 +246,7 @@ impl<'a> SyncService<'a> {
         })
     }
 
-    fn stage(&self, operation: SyncOperation) -> Result<SyncOperation, PreflightError> {
+    fn stage(&self, operation: SyncOperation) -> Result<SyncOperation, AppError> {
         self.validate_auxiliary_paths(&operation)?;
         if !self.source_and_destination_match(&operation)? {
             let operation = self.pause(operation)?.operation;
@@ -258,7 +258,7 @@ impl<'a> SyncService<'a> {
             .source_root
             .resolve_existing_file(&operation.source_path)?;
         let source_bytes = std::fs::read(&confined_source)
-            .map_err(|error| PreflightError::io("read the sync source", &error))?;
+            .map_err(|error| AppError::io("read the sync source", &error))?;
         if crate::filesystem::hash::sha256_bytes(&source_bytes) != operation.expected_source_hash {
             let operation = self.pause(operation)?.operation;
             return Ok(operation);
@@ -276,7 +276,7 @@ impl<'a> SyncService<'a> {
         operation: SyncOperation,
         current_repository_context: &str,
         interruption: Option<InterruptionPoint>,
-    ) -> Result<SyncReport, PreflightError> {
+    ) -> Result<SyncReport, AppError> {
         if operation.repository_context != current_repository_context {
             return self.pause(operation);
         }
@@ -332,7 +332,7 @@ impl<'a> SyncService<'a> {
         &self,
         operation: SyncOperation,
         current_repository_context: &str,
-    ) -> Result<SyncReport, PreflightError> {
+    ) -> Result<SyncReport, AppError> {
         self.validate_auxiliary_paths(&operation)?;
         let destination = self
             .destination_root
@@ -364,7 +364,7 @@ impl<'a> SyncService<'a> {
         &self,
         operation: SyncOperation,
         current_repository_context: &str,
-    ) -> Result<SyncOperation, PreflightError> {
+    ) -> Result<SyncOperation, AppError> {
         if operation.repository_context != current_repository_context {
             let operation = self.pause(operation)?.operation;
             return Ok(operation);
@@ -387,10 +387,10 @@ impl<'a> SyncService<'a> {
         &self,
         operation: SyncOperation,
         current_repository_context: &str,
-    ) -> Result<SyncReport, PreflightError> {
+    ) -> Result<SyncReport, AppError> {
         if operation.state != SyncState::Verified {
-            return Err(PreflightError::new(
-                PreflightErrorCode::RecoveryRequired,
+            return Err(AppError::new(
+                AppErrorCode::RecoveryRequired,
                 "only a verified operation can commit",
             ));
         }
@@ -415,7 +415,7 @@ impl<'a> SyncService<'a> {
                 Err(error) if error.kind() == std::io::ErrorKind::NotFound => false,
                 Err(_) => true,
             },
-            Err(error) if error.code == PreflightErrorCode::PathUnavailable => false,
+            Err(error) if error.code == AppErrorCode::PathUnavailable => false,
             Err(_) => true,
         };
         Ok(SyncReport {
@@ -425,10 +425,7 @@ impl<'a> SyncService<'a> {
         })
     }
 
-    fn source_and_destination_match(
-        &self,
-        operation: &SyncOperation,
-    ) -> Result<bool, PreflightError> {
+    fn source_and_destination_match(&self, operation: &SyncOperation) -> Result<bool, AppError> {
         let source = self
             .source_root
             .resolve_existing_file(&operation.source_path)?;
@@ -439,18 +436,18 @@ impl<'a> SyncService<'a> {
             && sha256_file(&destination)? == operation.expected_destination_hash)
     }
 
-    fn ensure_snapshot(&self, operation: &SyncOperation) -> Result<bool, PreflightError> {
+    fn ensure_snapshot(&self, operation: &SyncOperation) -> Result<bool, AppError> {
         match std::fs::metadata(&operation.snapshot_path) {
             Ok(_) => return self.snapshot_matches(operation),
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
-            Err(error) => return Err(PreflightError::io("inspect a recovery snapshot", &error)),
+            Err(error) => return Err(AppError::io("inspect a recovery snapshot", &error)),
         }
 
         let confined_destination = self
             .destination_root
             .resolve_existing_file(&operation.destination_path)?;
         let destination_bytes = std::fs::read(&confined_destination)
-            .map_err(|error| PreflightError::io("read the pre-write destination", &error))?;
+            .map_err(|error| AppError::io("read the pre-write destination", &error))?;
         if crate::filesystem::hash::sha256_bytes(&destination_bytes)
             != operation.expected_destination_hash
         {
@@ -460,26 +457,23 @@ impl<'a> SyncService<'a> {
         self.snapshot_matches(operation)
     }
 
-    fn staging_matches(&self, operation: &SyncOperation) -> Result<bool, PreflightError> {
+    fn staging_matches(&self, operation: &SyncOperation) -> Result<bool, AppError> {
         let staging = self
             .destination_root
             .resolve_existing_file(&operation.staging_path)?;
         Ok(sha256_file(&staging)? == operation.intended_result_hash)
     }
 
-    fn snapshot_matches(&self, operation: &SyncOperation) -> Result<bool, PreflightError> {
+    fn snapshot_matches(&self, operation: &SyncOperation) -> Result<bool, AppError> {
         let snapshot = self
             .destination_root
             .resolve_existing_file(&operation.snapshot_path)?;
         Ok(sha256_file(&snapshot)? == operation.expected_destination_hash)
     }
 
-    fn validate_auxiliary_paths(&self, operation: &SyncOperation) -> Result<(), PreflightError> {
+    fn validate_auxiliary_paths(&self, operation: &SyncOperation) -> Result<(), AppError> {
         let parent = operation.destination_path.parent().ok_or_else(|| {
-            PreflightError::new(
-                PreflightErrorCode::PathOutsideRoot,
-                "invalid destination parent",
-            )
+            AppError::new(AppErrorCode::PathOutsideRoot, "invalid destination parent")
         })?;
         let expected_stage = parent.join(format!(
             ".merlin-preflight-{}.staged",
@@ -491,8 +485,8 @@ impl<'a> SyncService<'a> {
         ));
         if operation.staging_path != expected_stage || operation.snapshot_path != expected_snapshot
         {
-            return Err(PreflightError::new(
-                PreflightErrorCode::PathOutsideRoot,
+            return Err(AppError::new(
+                AppErrorCode::PathOutsideRoot,
                 "sync auxiliary path does not match its durable operation identity",
             ));
         }
@@ -503,7 +497,7 @@ impl<'a> SyncService<'a> {
         &self,
         mut operation: SyncOperation,
         state: SyncState,
-    ) -> Result<SyncOperation, PreflightError> {
+    ) -> Result<SyncOperation, AppError> {
         operation.updated_at = self
             .database
             .update_sync_state(&operation.operation_id, state)?;
@@ -511,7 +505,7 @@ impl<'a> SyncService<'a> {
         Ok(operation)
     }
 
-    fn pause(&self, operation: SyncOperation) -> Result<SyncReport, PreflightError> {
+    fn pause(&self, operation: SyncOperation) -> Result<SyncReport, AppError> {
         let operation = if operation.state == SyncState::RecoveryRequired {
             operation
         } else {
@@ -529,31 +523,27 @@ fn report(operation: SyncOperation, outcome: SyncOutcome) -> SyncReport {
     }
 }
 
-fn timestamp() -> Result<String, PreflightError> {
+fn timestamp() -> Result<String, AppError> {
     OffsetDateTime::now_utc()
         .format(&Rfc3339)
-        .map_err(|_| PreflightError::database())
+        .map_err(|_| AppError::database())
 }
 
-fn write_new_file(path: &Path, bytes: &[u8]) -> Result<(), PreflightError> {
+fn write_new_file(path: &Path, bytes: &[u8]) -> Result<(), AppError> {
     let mut file = OpenOptions::new()
         .write(true)
         .create_new(true)
         .open(path)
-        .map_err(|error| {
-            PreflightError::io("create an internal staging or snapshot file", &error)
-        })?;
-    file.write_all(bytes).map_err(|error| {
-        PreflightError::io("write an internal staging or snapshot file", &error)
-    })?;
-    file.sync_all().map_err(|error| {
-        PreflightError::io("flush an internal staging or snapshot file", &error)
-    })?;
+        .map_err(|error| AppError::io("create an internal staging or snapshot file", &error))?;
+    file.write_all(bytes)
+        .map_err(|error| AppError::io("write an internal staging or snapshot file", &error))?;
+    file.sync_all()
+        .map_err(|error| AppError::io("flush an internal staging or snapshot file", &error))?;
     Ok(())
 }
 
 #[cfg(windows)]
-fn atomic_replace_same_directory(staging: &Path, destination: &Path) -> Result<(), PreflightError> {
+fn atomic_replace_same_directory(staging: &Path, destination: &Path) -> Result<(), AppError> {
     use windows::core::PCWSTR;
     use windows::Win32::Storage::FileSystem::{
         MoveFileExW, MOVEFILE_REPLACE_EXISTING, MOVEFILE_WRITE_THROUGH,
@@ -571,31 +561,26 @@ fn atomic_replace_same_directory(staging: &Path, destination: &Path) -> Result<(
             MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH,
         )
     }
-    .map_err(|_| {
-        PreflightError::new(
-            PreflightErrorCode::Io,
-            "atomic same-directory replacement failed",
-        )
-    })?;
+    .map_err(|_| AppError::new(AppErrorCode::Io, "atomic same-directory replacement failed"))?;
     Ok(())
 }
 
 #[cfg(not(windows))]
-fn atomic_replace_same_directory(staging: &Path, destination: &Path) -> Result<(), PreflightError> {
+fn atomic_replace_same_directory(staging: &Path, destination: &Path) -> Result<(), AppError> {
     // std::fs::rename maps to rename(2) on supported Unix targets. Same-directory renaming replaces
     // the destination atomically there. The Windows proof above uses MoveFileExW instead.
     std::fs::rename(staging, destination)
-        .map_err(|error| PreflightError::io("atomically replace the destination", &error))
+        .map_err(|error| AppError::io("atomically replace the destination", &error))
 }
 
 #[cfg(windows)]
-fn wide_null(path: &Path) -> Result<Vec<u16>, PreflightError> {
+fn wide_null(path: &Path) -> Result<Vec<u16>, AppError> {
     use std::os::windows::ffi::OsStrExt;
 
     let mut wide: Vec<u16> = path.as_os_str().encode_wide().collect();
     if wide.contains(&0) {
-        return Err(PreflightError::new(
-            PreflightErrorCode::PathUnavailable,
+        return Err(AppError::new(
+            AppErrorCode::PathUnavailable,
             "filesystem path contains an interior NUL",
         ));
     }

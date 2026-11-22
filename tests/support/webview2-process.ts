@@ -4,7 +4,7 @@ import path from "node:path"
 
 import { chromium, type Browser, type Page } from "playwright"
 
-export type WebView2Mode = "development" | "production"
+export type WebView2Mode = "development-harness" | "optimized-harness"
 
 export interface WebView2Session {
   browser: Browser
@@ -26,42 +26,49 @@ export function prepareWebView2Artifacts() {
   rmSync(logPath, { force: true })
 }
 
-export async function startWebView2(mode: WebView2Mode = "development"): Promise<WebView2Session> {
+export async function startWebView2(
+  mode: WebView2Mode = "development-harness",
+): Promise<WebView2Session> {
   mkdirSync(artifactRoot, { recursive: true })
   const log = createWriteStream(logPath, { flags: "a" })
-  const productionExecutable = path.join(
+  const optimizedHarnessExecutable = path.join(
     repoRoot,
     "src-tauri",
     "target",
+    "test-harness",
     "release",
-    "merlin-preflight.exe",
+    "merlin-test-harness.exe",
   )
   const processCommand =
-    mode === "production"
-      ? productionExecutable
+    mode === "optimized-harness"
+      ? optimizedHarnessExecutable
       : process.platform === "win32"
         ? "powershell.exe"
         : "pnpm"
   const processArguments =
-    mode === "production"
+    mode === "optimized-harness"
       ? []
       : process.platform === "win32"
         ? [
             "-NoProfile",
             "-File",
-            "scripts/native.ps1",
+            "scripts/native-harness.ps1",
             "pnpm",
             "exec",
             "tauri",
             "dev",
             "--no-watch",
+            "--features",
+            "test-harness",
           ]
-        : ["tauri", "dev", "--no-watch"]
+        : ["tauri", "dev", "--no-watch", "--features", "test-harness"]
   const child = spawn(processCommand, processArguments, {
     cwd: repoRoot,
     env: {
       ...process.env,
-      MERLIN_PREFLIGHT_DATA_DIR: dataDirectory,
+      MERLIN_TEST_HARNESS_BUILD: "1",
+      MERLIN_TEST_MODE: "1",
+      MERLIN_TEST_DATA_DIR: dataDirectory,
       WEBVIEW2_USER_DATA_FOLDER: profileDirectory,
       WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: `--remote-debugging-port=${port} --remote-allow-origins=*`,
     },
@@ -121,7 +128,9 @@ async function waitForCdp(child: ChildProcessWithoutNullStreams, getExitCode: ()
   let lastError = "CDP endpoint did not become ready"
   while (Date.now() < deadline) {
     if (getExitCode() !== null) {
-      throw new Error(`Tauri proof process exited before CDP readiness with code ${getExitCode()}`)
+      throw new Error(
+        `Tauri harness process exited before CDP readiness with code ${getExitCode()}`,
+      )
     }
     try {
       const response = await fetch(`http://127.0.0.1:${port}/json/version`)

@@ -1,9 +1,9 @@
 use std::fs;
 use std::time::Duration;
 
-use merlin_preflight::error::PreflightErrorCode;
-use merlin_preflight::filesystem::path::RegisteredRoot;
-use merlin_preflight::filesystem::watcher::{classify_notification, RootWatcher, WatchHint};
+use merlin::error::AppErrorCode;
+use merlin::filesystem::path::RegisteredRoot;
+use merlin::filesystem::watcher::{classify_notification, RootWatcher, WatchHint};
 
 #[test]
 fn registered_root_rejects_traversal_and_reports_missing_as_unavailable() {
@@ -17,12 +17,12 @@ fn registered_root_rejects_traversal_and_reports_missing_as_unavailable() {
     let error = root
         .resolve_existing(&outside_path)
         .expect_err("outside path accepted");
-    assert_eq!(error.code, PreflightErrorCode::PathOutsideRoot);
+    assert_eq!(error.code, AppErrorCode::PathOutsideRoot);
 
     let missing = root
         .resolve_existing_file(std::path::Path::new("missing.md"))
         .expect_err("missing file accepted");
-    assert_eq!(missing.code, PreflightErrorCode::PathUnavailable);
+    assert_eq!(missing.code, AppErrorCode::PathUnavailable);
     assert!(missing.message.contains("does not establish deletion"));
 }
 
@@ -70,5 +70,5 @@ fn existing_symlink_escape_is_rejected_when_the_os_permits_the_fixture() {
     let error = root
         .resolve_existing_file(&link_path)
         .expect_err("escaping symlink accepted");
-    assert_eq!(error.code, PreflightErrorCode::PathOutsideRoot);
+    assert_eq!(error.code, AppErrorCode::PathOutsideRoot);
 }

@@ -1,8 +1,8 @@
 use std::fs;
 use std::path::PathBuf;
 
-use merlin_preflight::error::PreflightErrorCode;
-use merlin_preflight::services::launch::{ValidatedHttpsUrl, ValidatedLaunch};
+use merlin::error::AppErrorCode;
+use merlin::services::launch::{ValidatedHttpsUrl, ValidatedLaunch};
 
 #[test]
 fn https_validation_accepts_only_unambiguous_https_urls() {
@@ -42,7 +42,7 @@ fn https_validation_accepts_only_unambiguous_https_urls() {
         "",
     ] {
         let error = ValidatedHttpsUrl::parse(invalid).expect_err("unsafe URL accepted");
-        assert_eq!(error.code, PreflightErrorCode::InvalidUrl);
+        assert_eq!(error.code, AppErrorCode::InvalidUrl);
     }
 }
 
@@ -71,7 +71,7 @@ fn executable_working_directory_and_arguments_are_validated() {
     ] {
         let error = ValidatedLaunch::new(&executable_path, &working_directory, vec![bad_argument])
             .expect_err("unsafe argument accepted");
-        assert_eq!(error.code, PreflightErrorCode::InvalidLaunch);
+        assert_eq!(error.code, AppErrorCode::InvalidLaunch);
     }
 
     assert!(ValidatedLaunch::new(
@@ -116,5 +116,5 @@ fn shell_interpreters_are_rejected() {
         vec!["/c".to_owned(), "echo should-not-run".to_owned()],
     )
     .expect_err("shell interpreter accepted");
-    assert_eq!(error.code, PreflightErrorCode::InvalidLaunch);
+    assert_eq!(error.code, AppErrorCode::InvalidLaunch);
 }

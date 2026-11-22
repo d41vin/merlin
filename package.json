@@ -11,19 +11,23 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:test-harness": "powershell -NoProfile -File scripts/build-test-harness.ps1",
+    "verify:production-boundary": "powershell -NoProfile -File scripts/verify-production-boundary.ps1",
     "tauri": "powershell -NoProfile -File scripts/native.ps1 pnpm exec tauri",
     "setup:rust": "powershell -NoProfile -File scripts/setup-rust.ps1",
     "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
     "format:check": "prettier --check . && powershell -NoProfile -File scripts/native.ps1 cargo fmt --manifest-path src-tauri/Cargo.toml -- --check",
     "lint:frontend": "eslint . --max-warnings=0",
     "lint:rust": "powershell -NoProfile -File scripts/native.ps1 cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings",
-    "lint": "pnpm lint:frontend && pnpm lint:rust",
+    "lint:rust:harness": "powershell -NoProfile -File scripts/native-harness.ps1 cargo clippy --manifest-path src-tauri/Cargo.toml --features test-harness --all-targets -- -D warnings",
+    "lint": "pnpm lint:frontend && pnpm lint:rust && pnpm lint:rust:harness",
     "test:frontend": "vitest run",
     "test:rust": "powershell -NoProfile -File scripts/native.ps1 cargo test --manifest-path src-tauri/Cargo.toml",
+    "test:rust:harness": "powershell -NoProfile -File scripts/native-harness.ps1 cargo test --manifest-path src-tauri/Cargo.toml --features test-harness",
     "test:e2e": "playwright test --config playwright.chromium.config.ts",
     "test:webview2": "playwright test --config playwright.webview2.config.ts",
     "test:contrast": "node scripts/validate-themes.mjs",
-    "test": "pnpm test:frontend && pnpm test:rust && pnpm test:contrast"
+    "test": "pnpm test:frontend && pnpm test:rust && pnpm test:rust:harness && pnpm test:contrast"
   },
   "dependencies": {
     "@base-ui/react": "1.9.0",

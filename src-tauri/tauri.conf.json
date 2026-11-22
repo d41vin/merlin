@@ -1,20 +1,21 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Merlin Preflight",
+  "productName": "Merlin",
   "version": "0.1.0",
-  "identifier": "com.merlin.preflight",
+  "identifier": "com.merlin.desktop",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:5173",
     "beforeDevCommand": "pnpm dev",
-    "beforeBuildCommand": "pnpm build"
+    "beforeBuildCommand": "pnpm build",
+    "beforeBundleCommand": "powershell -NoProfile -File scripts/assert-production-binary.ps1"
   },
   "app": {
     "withGlobalTauri": false,
     "windows": [
       {
         "label": "main",
-        "title": "Merlin Preflight",
+        "title": "Merlin",
         "width": 1100,
         "height": 760,
         "minWidth": 760,

@@ -3,7 +3,7 @@ use std::time::Duration;
 
 use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 
-use crate::error::{PreflightError, PreflightErrorCode};
+use crate::error::{AppError, AppErrorCode};
 use crate::filesystem::path::RegisteredRoot;
 
 /// Events and errors both request reconciliation; neither establishes content state or deletion.
@@ -20,7 +20,7 @@ pub struct RootWatcher {
 }
 
 impl RootWatcher {
-    pub fn watch_recursive(root: &RegisteredRoot) -> Result<Self, PreflightError> {
+    pub fn watch_recursive(root: &RegisteredRoot) -> Result<Self, AppError> {
         let (sender, receiver) = channel();
         let mut watcher =
             notify::recommended_watcher(move |result: notify::Result<notify::Event>| {
@@ -52,6 +52,6 @@ pub fn classify_notification(result: notify::Result<notify::Event>) -> WatchHint
     }
 }
 
-fn watcher_error(message: &str) -> PreflightError {
-    PreflightError::new(PreflightErrorCode::Watcher, message)
+fn watcher_error(message: &str) -> AppError {
+    AppError::new(AppErrorCode::Watcher, message)
 }

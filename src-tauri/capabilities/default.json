@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Minimal main-window capability set for the Phase 0 typed commands.",
+  "description": "Minimal main-window capability set for Merlin typed application commands.",
   "windows": ["main"],
   "permissions": ["core:default"],
   "platforms": ["windows"]

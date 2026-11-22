@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use crate::error::{PreflightError, PreflightErrorCode};
+use crate::error::{AppError, AppErrorCode};
 
 /// An existing, canonical directory explicitly registered for Phase 0 filesystem access.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -9,13 +9,13 @@ pub struct RegisteredRoot {
 }
 
 impl RegisteredRoot {
-    pub fn register(path: &Path) -> Result<Self, PreflightError> {
+    pub fn register(path: &Path) -> Result<Self, AppError> {
         let canonical = canonicalize(path)?;
         let metadata = std::fs::metadata(&canonical)
-            .map_err(|error| PreflightError::io("inspect the registered root", &error))?;
+            .map_err(|error| AppError::io("inspect the registered root", &error))?;
         if !metadata.is_dir() {
-            return Err(PreflightError::new(
-                PreflightErrorCode::PathOutsideRoot,
+            return Err(AppError::new(
+                AppErrorCode::PathOutsideRoot,
                 "registered root must be an existing directory",
             ));
         }
@@ -27,7 +27,7 @@ impl RegisteredRoot {
     }
 
     /// Canonicalization follows links/junctions before checking component-wise ancestry.
-    pub fn resolve_existing(&self, candidate: &Path) -> Result<PathBuf, PreflightError> {
+    pub fn resolve_existing(&self, candidate: &Path) -> Result<PathBuf, AppError> {
         let joined = if candidate.is_absolute() {
             candidate.to_path_buf()
         } else {
@@ -35,21 +35,21 @@ impl RegisteredRoot {
         };
         let canonical = canonicalize(&joined)?;
         if !canonical.starts_with(&self.canonical) {
-            return Err(PreflightError::new(
-                PreflightErrorCode::PathOutsideRoot,
+            return Err(AppError::new(
+                AppErrorCode::PathOutsideRoot,
                 "canonical path escapes its registered root",
             ));
         }
         Ok(canonical)
     }
 
-    pub fn resolve_existing_file(&self, candidate: &Path) -> Result<PathBuf, PreflightError> {
+    pub fn resolve_existing_file(&self, candidate: &Path) -> Result<PathBuf, AppError> {
         let canonical = self.resolve_existing(candidate)?;
         let metadata = std::fs::metadata(&canonical)
-            .map_err(|error| PreflightError::io("inspect a confined file", &error))?;
+            .map_err(|error| AppError::io("inspect a confined file", &error))?;
         if !metadata.is_file() {
-            return Err(PreflightError::new(
-                PreflightErrorCode::PathUnavailable,
+            return Err(AppError::new(
+                AppErrorCode::PathUnavailable,
                 "confined path is not a regular file",
             ));
         }
@@ -57,12 +57,12 @@ impl RegisteredRoot {
     }
 }
 
-fn canonicalize(path: &Path) -> Result<PathBuf, PreflightError> {
+fn canonicalize(path: &Path) -> Result<PathBuf, AppError> {
     std::fs::canonicalize(path).map_err(|error| {
         if error.kind() == std::io::ErrorKind::NotFound {
-            PreflightError::path_unavailable()
+            AppError::path_unavailable()
         } else {
-            PreflightError::io("canonicalize a path", &error)
+            AppError::io("canonicalize a path", &error)
         }
     })
 }

@@ -5,7 +5,7 @@ use serde::Serialize;
 use uuid::Uuid;
 use zeroize::Zeroizing;
 
-use crate::error::{PreflightError, PreflightErrorCode};
+use crate::error::{AppError, AppErrorCode};
 
 const REFERENCE_PREFIX: &str = "merlin-preflight:credential:";
 const KEYRING_SERVICE: &str = "com.merlin.preflight";
@@ -19,7 +19,7 @@ impl CredentialReference {
         Self(format!("{REFERENCE_PREFIX}{}", Uuid::new_v4()))
     }
 
-    pub fn parse(value: &str) -> Result<Self, PreflightError> {
+    pub fn parse(value: &str) -> Result<Self, AppError> {
         value.parse()
     }
 
@@ -44,7 +44,7 @@ impl fmt::Display for CredentialReference {
 }
 
 impl FromStr for CredentialReference {
-    type Err = PreflightError;
+    type Err = AppError;
 
     fn from_str(value: &str) -> Result<Self, Self::Err> {
         let identifier = value
@@ -60,10 +60,7 @@ impl FromStr for CredentialReference {
 
 /// Store a synthetic or user-provided secret in the platform keyring.
 /// This function is intentionally not a Tauri command.
-pub fn set_preflight_secret(
-    reference: &CredentialReference,
-    secret: &str,
-) -> Result<(), PreflightError> {
+pub fn set_preflight_secret(reference: &CredentialReference, secret: &str) -> Result<(), AppError> {
     entry(reference)?
         .set_password(secret)
         .map_err(credential_error)
@@ -72,36 +69,36 @@ pub fn set_preflight_secret(
 /// Read a secret for native proof code only. Returned memory is zeroized on drop.
 pub fn get_preflight_secret(
     reference: &CredentialReference,
-) -> Result<Zeroizing<String>, PreflightError> {
+) -> Result<Zeroizing<String>, AppError> {
     let secret = entry(reference)?.get_password().map_err(credential_error)?;
     Ok(Zeroizing::new(secret))
 }
 
 /// Delete only the exact credential identified by a validated preflight reference.
-pub fn delete_preflight_secret(reference: &CredentialReference) -> Result<(), PreflightError> {
+pub fn delete_preflight_secret(reference: &CredentialReference) -> Result<(), AppError> {
     entry(reference)?
         .delete_credential()
         .map_err(credential_error)
 }
 
-fn entry(reference: &CredentialReference) -> Result<keyring::Entry, PreflightError> {
+fn entry(reference: &CredentialReference) -> Result<keyring::Entry, AppError> {
     // Parsing again at the storage boundary keeps this check explicit even if construction changes.
     CredentialReference::parse(reference.as_str())?;
     keyring::Entry::new(KEYRING_SERVICE, reference.as_str()).map_err(credential_error)
 }
 
-fn credential_error(error: keyring::Error) -> PreflightError {
+fn credential_error(error: keyring::Error) -> AppError {
     let code = if matches!(error, keyring::Error::NoEntry) {
-        PreflightErrorCode::CredentialNotFound
+        AppErrorCode::CredentialNotFound
     } else {
-        PreflightErrorCode::Credential
+        AppErrorCode::Credential
     };
-    PreflightError::new(code, "Windows Credential Manager operation failed")
+    AppError::new(code, "Windows Credential Manager operation failed")
 }
 
-fn invalid_reference() -> PreflightError {
-    PreflightError::new(
-        PreflightErrorCode::InvalidCredentialReference,
+fn invalid_reference() -> AppError {
+    AppError::new(
+        AppErrorCode::InvalidCredentialReference,
         "credential reference must be merlin-preflight:credential:<canonical-v4-uuid>",
     )
 }

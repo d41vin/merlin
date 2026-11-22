@@ -11,7 +11,7 @@
 #[cfg(not(windows))]
 use zeroize::Zeroizing;
 
-use crate::error::PreflightError;
+use crate::error::AppError;
 
 const AES_KEY_LENGTH: usize = 32;
 const NONCE_LENGTH: usize = 12;
@@ -36,12 +36,12 @@ mod implementation {
     };
     use zeroize::{Zeroize, Zeroizing};
 
-    use super::{DpapiAesGcmEnvelope, PreflightError};
+    use super::{AppError, DpapiAesGcmEnvelope};
     use super::{AES_KEY_LENGTH, NONCE_LENGTH};
 
-    pub fn wrap_aes_key_with_dpapi(key: &[u8]) -> Result<Vec<u8>, PreflightError> {
+    pub fn wrap_aes_key_with_dpapi(key: &[u8]) -> Result<Vec<u8>, AppError> {
         if key.len() != AES_KEY_LENGTH {
-            return Err(PreflightError::crypto(
+            return Err(AppError::crypto(
                 "DPAPI proof requires exactly one 256-bit AES key",
             ));
         }
@@ -60,15 +60,13 @@ mod implementation {
                 &mut output.inner,
             )
         }
-        .map_err(|_| PreflightError::crypto("current-user DPAPI key wrapping failed"))?;
+        .map_err(|_| AppError::crypto("current-user DPAPI key wrapping failed"))?;
         Ok(output.as_slice().to_vec())
     }
 
-    pub fn unwrap_aes_key_with_dpapi(
-        wrapped_key: &[u8],
-    ) -> Result<Zeroizing<Vec<u8>>, PreflightError> {
+    pub fn unwrap_aes_key_with_dpapi(wrapped_key: &[u8]) -> Result<Zeroizing<Vec<u8>>, AppError> {
         if wrapped_key.is_empty() {
-            return Err(PreflightError::crypto("wrapped DPAPI key is empty"));
+            return Err(AppError::crypto("wrapped DPAPI key is empty"));
         }
         let input = integer_blob(wrapped_key)?;
         let mut output = LocalBlob::default();
@@ -84,9 +82,9 @@ mod implementation {
                 &mut output.inner,
             )
         }
-        .map_err(|_| PreflightError::crypto("current-user DPAPI key unwrapping failed"))?;
+        .map_err(|_| AppError::crypto("current-user DPAPI key unwrapping failed"))?;
         if output.as_slice().len() != AES_KEY_LENGTH {
-            return Err(PreflightError::crypto(
+            return Err(AppError::crypto(
                 "DPAPI unwrapped data is not a 256-bit AES key",
             ));
         }
@@ -95,17 +93,17 @@ mod implementation {
 
     pub fn encrypt_sensitive_bytes_for_preflight(
         plaintext: &[u8],
-    ) -> Result<DpapiAesGcmEnvelope, PreflightError> {
+    ) -> Result<DpapiAesGcmEnvelope, AppError> {
         let key = random_key()?;
         let wrapped_key = wrap_aes_key_with_dpapi(&key)?;
         let nonce_bytes = random_nonce()?;
         let cipher = Aes256Gcm::new_from_slice(&key)
-            .map_err(|_| PreflightError::crypto("AES-256-GCM key initialization failed"))?;
+            .map_err(|_| AppError::crypto("AES-256-GCM key initialization failed"))?;
         let nonce = Nonce::try_from(nonce_bytes.as_slice())
-            .map_err(|_| PreflightError::crypto("AES-GCM nonce initialization failed"))?;
+            .map_err(|_| AppError::crypto("AES-GCM nonce initialization failed"))?;
         let ciphertext = cipher
             .encrypt(&nonce, plaintext)
-            .map_err(|_| PreflightError::crypto("AES-256-GCM encryption failed"))?;
+            .map_err(|_| AppError::crypto("AES-256-GCM encryption failed"))?;
         Ok(DpapiAesGcmEnvelope {
             wrapped_key,
             nonce: nonce_bytes,
@@ -115,44 +113,42 @@ mod implementation {
 
     pub fn decrypt_sensitive_bytes_for_preflight(
         envelope: &DpapiAesGcmEnvelope,
-    ) -> Result<Zeroizing<Vec<u8>>, PreflightError> {
+    ) -> Result<Zeroizing<Vec<u8>>, AppError> {
         let key = unwrap_aes_key_with_dpapi(&envelope.wrapped_key)?;
         let cipher = Aes256Gcm::new_from_slice(&key)
-            .map_err(|_| PreflightError::crypto("AES-256-GCM key initialization failed"))?;
+            .map_err(|_| AppError::crypto("AES-256-GCM key initialization failed"))?;
         let nonce = Nonce::try_from(envelope.nonce.as_slice())
-            .map_err(|_| PreflightError::crypto("AES-GCM nonce initialization failed"))?;
+            .map_err(|_| AppError::crypto("AES-GCM nonce initialization failed"))?;
         let plaintext = cipher
             .decrypt(&nonce, envelope.ciphertext.as_ref())
-            .map_err(|_| {
-                PreflightError::crypto("AES-256-GCM authentication or decryption failed")
-            })?;
+            .map_err(|_| AppError::crypto("AES-256-GCM authentication or decryption failed"))?;
         Ok(Zeroizing::new(plaintext))
     }
 
-    fn random_key() -> Result<Zeroizing<Vec<u8>>, PreflightError> {
+    fn random_key() -> Result<Zeroizing<Vec<u8>>, AppError> {
         let mut key = Zeroizing::new(vec![0_u8; AES_KEY_LENGTH]);
         fill_windows_random(key.as_mut_slice())?;
         Ok(key)
     }
 
-    fn random_nonce() -> Result<[u8; NONCE_LENGTH], PreflightError> {
+    fn random_nonce() -> Result<[u8; NONCE_LENGTH], AppError> {
         let mut nonce = [0_u8; NONCE_LENGTH];
         fill_windows_random(&mut nonce)?;
         Ok(nonce)
     }
 
-    fn fill_windows_random(buffer: &mut [u8]) -> Result<(), PreflightError> {
+    fn fill_windows_random(buffer: &mut [u8]) -> Result<(), AppError> {
         // SAFETY: BCrypt writes only into the supplied mutable slice when passed the system RNG flag.
         let status = unsafe { BCryptGenRandom(None, buffer, BCRYPT_USE_SYSTEM_PREFERRED_RNG) };
         if status.0 < 0 {
-            return Err(PreflightError::crypto("Windows secure RNG failed"));
+            return Err(AppError::crypto("Windows secure RNG failed"));
         }
         Ok(())
     }
 
-    fn integer_blob(bytes: &[u8]) -> Result<CRYPT_INTEGER_BLOB, PreflightError> {
-        let length = u32::try_from(bytes.len())
-            .map_err(|_| PreflightError::crypto("DPAPI input is too large"))?;
+    fn integer_blob(bytes: &[u8]) -> Result<CRYPT_INTEGER_BLOB, AppError> {
+        let length =
+            u32::try_from(bytes.len()).map_err(|_| AppError::crypto("DPAPI input is too large"))?;
         Ok(CRYPT_INTEGER_BLOB {
             cbData: length,
             // DPAPI declares this input pointer mutable but does not mutate the input bytes.
@@ -193,35 +189,33 @@ mod implementation {
 
 #[cfg(not(windows))]
 mod implementation {
-    use super::{DpapiAesGcmEnvelope, PreflightError, Zeroizing};
-    use crate::error::PreflightErrorCode;
+    use super::{AppError, DpapiAesGcmEnvelope, Zeroizing};
+    use crate::error::AppErrorCode;
 
-    fn unsupported() -> PreflightError {
-        PreflightError::new(
-            PreflightErrorCode::UnsupportedPlatform,
+    fn unsupported() -> AppError {
+        AppError::new(
+            AppErrorCode::UnsupportedPlatform,
             "DPAPI proof is available only on Windows; no plaintext fallback exists",
         )
     }
 
-    pub fn wrap_aes_key_with_dpapi(_key: &[u8]) -> Result<Vec<u8>, PreflightError> {
+    pub fn wrap_aes_key_with_dpapi(_key: &[u8]) -> Result<Vec<u8>, AppError> {
         Err(unsupported())
     }
 
-    pub fn unwrap_aes_key_with_dpapi(
-        _wrapped_key: &[u8],
-    ) -> Result<Zeroizing<Vec<u8>>, PreflightError> {
+    pub fn unwrap_aes_key_with_dpapi(_wrapped_key: &[u8]) -> Result<Zeroizing<Vec<u8>>, AppError> {
         Err(unsupported())
     }
 
     pub fn encrypt_sensitive_bytes_for_preflight(
         _plaintext: &[u8],
-    ) -> Result<DpapiAesGcmEnvelope, PreflightError> {
+    ) -> Result<DpapiAesGcmEnvelope, AppError> {
         Err(unsupported())
     }
 
     pub fn decrypt_sensitive_bytes_for_preflight(
         _envelope: &DpapiAesGcmEnvelope,
-    ) -> Result<Zeroizing<Vec<u8>>, PreflightError> {
+    ) -> Result<Zeroizing<Vec<u8>>, AppError> {
         Err(unsupported())
     }
 }

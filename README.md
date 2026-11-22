@@ -84,10 +84,16 @@ pnpm typecheck
 pnpm lint
 pnpm test
 pnpm test:e2e
-pnpm test:webview2
 pnpm build
-pnpm tauri build
+pnpm tauri build --features custom-protocol,production --no-binary-patching
+pnpm build:test-harness
+pnpm verify:production-boundary
+pnpm test:webview2
 ```
+
+Production packaging must explicitly select `custom-protocol,production`; do not use `--all-features`. The Tauri pre-bundle hook requires the production feature marker and rejects test override markers. Harness-enabled native commands use `scripts/native-harness.ps1` through the package scripts; direct harness compilation without that wrapper is rejected.
+
+The separately targeted optimized harness is `src-tauri/target/test-harness/release/merlin-test-harness.exe` and is not a distributable application. Real WebView2 tests use only development/optimized harnesses with isolated synthetic data.
 
 The scripts are backed by the configured Phase 0 tools. `BUILD-STATUS.md` records their actual verification outcomes and the limits of each proof.
 

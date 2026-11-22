@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 use std::process::{Command, ExitStatus, Stdio};
 
-use crate::error::{PreflightError, PreflightErrorCode};
+use crate::error::{AppError, AppErrorCode};
 
 const HTTPS_PREFIX: &str = "https://";
 const MAX_URL_LENGTH: usize = 4_096;
@@ -22,7 +22,7 @@ const DENIED_SHELL_EXECUTABLES: [&str; 8] = [
 pub struct ValidatedHttpsUrl(String);
 
 impl ValidatedHttpsUrl {
-    pub fn parse(value: &str) -> Result<Self, PreflightError> {
+    pub fn parse(value: &str) -> Result<Self, AppError> {
         if value.is_empty() || value.len() > MAX_URL_LENGTH || !value.is_ascii() {
             return Err(invalid_url("HTTPS URL must be nonempty bounded ASCII text"));
         }
@@ -73,7 +73,7 @@ impl ValidatedLaunch {
         executable: &Path,
         working_directory: &Path,
         arguments: Vec<String>,
-    ) -> Result<Self, PreflightError> {
+    ) -> Result<Self, AppError> {
         let executable = canonical_existing(executable, "executable")?;
         if !executable.is_file() {
             return Err(invalid_launch("executable must be an existing file"));
@@ -134,7 +134,7 @@ impl ValidatedLaunch {
     }
 
     /// Native-only proof helper. It is deliberately not registered as a Tauri command.
-    pub fn run_and_wait(&self) -> Result<ExitStatus, PreflightError> {
+    pub fn run_and_wait(&self) -> Result<ExitStatus, AppError> {
         Command::new(&self.executable)
             .args(&self.arguments)
             .current_dir(&self.working_directory)
@@ -143,15 +143,15 @@ impl ValidatedLaunch {
             .stderr(Stdio::null())
             .status()
             .map_err(|_| {
-                PreflightError::new(
-                    PreflightErrorCode::ProcessLaunch,
+                AppError::new(
+                    AppErrorCode::ProcessLaunch,
                     "validated process could not be launched",
                 )
             })
     }
 }
 
-fn validate_authority(authority: &str) -> Result<(), PreflightError> {
+fn validate_authority(authority: &str) -> Result<(), AppError> {
     if authority.is_empty() || authority.contains(['@', '%', '[', ']']) || authority.len() > 2_048 {
         return Err(invalid_url(
             "HTTPS authority cannot contain credentials, escapes, or ambiguous IP syntax",
@@ -197,7 +197,7 @@ fn validate_authority(authority: &str) -> Result<(), PreflightError> {
     Ok(())
 }
 
-fn validate_percent_encoding(value: &str) -> Result<(), PreflightError> {
+fn validate_percent_encoding(value: &str) -> Result<(), AppError> {
     let bytes = value.as_bytes();
     let mut index = 0;
     while index < bytes.len() {
@@ -229,15 +229,15 @@ fn hex_digit(byte: u8) -> u8 {
     }
 }
 
-fn canonical_existing(path: &Path, role: &str) -> Result<PathBuf, PreflightError> {
+fn canonical_existing(path: &Path, role: &str) -> Result<PathBuf, AppError> {
     std::fs::canonicalize(path)
         .map_err(|_| invalid_launch(&format!("{role} must be an existing canonical path")))
 }
 
-fn invalid_url(message: &str) -> PreflightError {
-    PreflightError::new(PreflightErrorCode::InvalidUrl, message)
+fn invalid_url(message: &str) -> AppError {
+    AppError::new(AppErrorCode::InvalidUrl, message)
 }
 
-fn invalid_launch(message: &str) -> PreflightError {
-    PreflightError::new(PreflightErrorCode::InvalidLaunch, message)
+fn invalid_launch(message: &str) -> AppError {
+    AppError::new(AppErrorCode::InvalidLaunch, message)
 }

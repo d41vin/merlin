@@ -48,6 +48,8 @@ Verification gates:
 ## Phase 1 — Application shell and foundation
 
 Build:
+- Production Tauri identity and native database lifecycle.
+- Production-only packaging features with a separately compiled and targeted optimized test harness; no runtime database override in normal distribution.
 - Tauri/React shell.
 - Navigation: Overview, Projects, Resources.
 - SQLite migrations and repositories.
@@ -66,9 +68,9 @@ Verification gates:
 - **Unit:** settings, theme-contract completeness, contrast calculations, and navigation state.
 - **Integration:** SQLite migrations and settings repositories through typed Tauri commands, including SQLite-backed panel-layout save/restore.
 - **Filesystem/recovery:** not applicable to new Phase 1 behavior; rerun the Phase 0 atomic-write proof if shared filesystem infrastructure changes.
-- **Security:** prove layouts do not use browser localStorage and that settings/log paths do not accept secrets.
+- **Security:** prove layouts do not use browser localStorage and that settings/log paths do not accept secrets. Normal production resolver tests and binary inspection must prove test database environment overrides are absent, while the separately compiled harness accepts only explicitly gated canonicalized paths.
 - **Accessibility:** navigation and common controls have accessible names, visible focus, keyboard operation, and reduced-motion behavior where animated.
-- **Windows build:** Windows 11 debug launch and configured production build succeed.
+- **Windows build:** Windows 11 debug launch, explicit production-feature packaged build, and optimized test-harness build succeed. The production package must exclude the harness and the production build must reject simultaneous production/test-harness features.
 
 ## Phase 2 — Docs and Vault
 

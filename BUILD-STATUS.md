@@ -2,13 +2,26 @@
 
 Last updated: 2026-11-23
 
-## Current phase and recommendation
+## Current phase and exact authorization
 
-- **Current phase:** Phase 0 — Technical preflight.
+- **Current phase:** Phase 1 — Application shell and foundation, **Milestone 1: Production identity and native database lifecycle**.
+- **Exact task authorized:** The user reviewed the packaging follow-up and **accepted Milestone 1 on 2026-11-23**. The only newly authorized action is one reviewed Milestone 1 commit, preceded by complete final-diff/staging review. The commit hash and post-commit status belong to the final commit handoff. Do not begin Milestone 2 or any later product work.
+- **Phase 0 baseline:** Commit `28d91919f83fae1ad4b47731693f9b5012473639` exists and the repository was clean when Phase 1 planning completed. Phase 0 passed its approved technical-preflight scope, subject to the offline and trusted-renderer syntax-class-provenance limitations retained below. Its proofs are not completed product workflows.
+- **Milestone 1 status:** **Accepted by the user.** Implementation, automated verification, and the separately authorized packaging verification follow-up passed. The React presentation remains the Phase 0 proof shell until the separately authorized shell milestones; Overview, Projects, Resources, and other product workflows remain unimplemented.
+- **Stop boundary:** Stage only the reviewed Milestone 1 changes and create one conventional commit; then stop and report the hash, files, summary, upstream count, and clean status. **Milestone 2 is not authorized. Do not push.**
+
+## Phase 1 approved decisions
+
+- Production Tauri identity is `com.merlin.desktop`, the product/window title is Merlin, the executable is `merlin.exe`, and the normal database is `<app_data_dir>/merlin.sqlite3`. Existing `preflight.sqlite3` files must remain untouched.
+- Production packaging uses an explicit `custom-protocol,production` feature set and must fail if `test-harness` is also enabled; `--all-features` is not a production packaging path. The test-only database override exists only behind the compile-time `test-harness` feature. Harness compilation requires an explicit wrapper, release harnesses reject the normal target directory, and the Tauri pre-bundle hook requires a production-only feature marker while rejecting override markers. The single-NSIS production command uses `--no-binary-patching` so post-build verification can compare the unchanged raw executable hash with controlled pre-bundle evidence.
+- The optimized harness uses a separate Cargo target directory and the distinct executable `merlin-test-harness.exe`. It must not enter the normal production bundle. Production binary marker absence, harness positive control, feature-conflict rejection, and package exclusion are required verification gates.
+- Harness overrides additionally require `MERLIN_TEST_MODE=1` and a validated absolute `MERLIN_TEST_DATA_DIR`. The directory is canonicalized and validated before database creation/opening, and the final database file must remain inside it. Normal production resolver tests must prove environment variables cannot redirect storage.
+- Approved future-workbench defaults are Docs 35%, Todos 30%, Activity 20%, Resources 15%, with open minima 20%, 20%, 12%, and 12%. This records the approved contract only; layout/product changes belong to later separately authorized milestones.
+
+## Phase 0 handoff summary
+
 - **Recommendation:** **Accepted PASS for the approved technical-preflight scope, with explicit offline and syntax-class-provenance limitations.** The NSIS install/launch/uninstall lifecycle passed. The installed application also reloaded successfully with WebView2 network emulation forced offline, but a cold process launch with operating-system networking disabled was not verified and is not marked as passed. The final hygiene review separately identified an unresolved trusted-renderer syntax-class provenance mismatch; the executed hostile-document non-execution proofs remain valid, but that broader contract is not marked as passed. This is not a claim that Merlin product features exist.
-- **Product implementation:** Not started. There are no Overview, Projects, Resources, full Docs synchronization, provider, usage, attachment, or credential-management product workflows.
-- **Next phase:** **Phase 1 is not authorized.** Stop here for user review and explicit approval.
-- **Outstanding final-review limitations:** Cold installed-process launch with the host machine actually disconnected from networking remains unverified. The hygiene review also found that raw-HTML `code` elements may retain allowlisted `language-*` classes, so the security contract's trusted-renderer-owned syntax-class provenance is unresolved and is not marked as passed. No script execution was observed from this provenance mismatch. Environmental warnings and other intentionally unexecuted checks are listed below rather than hidden.
+- **Outstanding final-review limitations:** Cold installed-process launch with the host machine actually disconnected from networking remains unverified. Raw-HTML `code` elements may retain allowlisted `language-*` classes, so the security contract's trusted-renderer-owned syntax-class provenance remains unresolved and is a hard gate before production Docs. No script execution was observed from this provenance mismatch. Environmental warnings and other intentionally unexecuted checks are listed below rather than hidden.
 
 ## Approved architectural and technical decisions
 
@@ -58,9 +71,107 @@ Last updated: 2026-11-23
 | `cargo check --manifest-path src-tauri/Cargo.toml --locked --all-targets` | PASS — final handoff rerun completed in 11.64 seconds with the reviewed lockfile. |
 | Lockfile presence/integrity | PASS — `pnpm-lock.yaml` (204,689 bytes; SHA-256 `49652E1036BF08E0B7C589576965524ED3036673E4E6E831552E9C3CC84F8562`) and `src-tauri/Cargo.lock` (134,842 bytes; SHA-256 `210B855CF95EF85472A08BF4C5396FBD9D67E8F6578D3BC566E98EFF7715C8F4`) are present. Frozen pnpm installation and locked Cargo resolution/checks succeeded. |
 
-## Final verification commands and outcomes
+## Milestone 1 implementation and verification
 
-The following commands completed after the implementation fixes. Separate earlier failures are retained in the next section.
+### Implemented scope
+
+- Renamed the native package/library and production-facing error/database types to Merlin application names while preserving proof IPC names, credential namespaces, V1 migration history, sync behavior, and all existing assertions.
+- Set production identity to `com.merlin.desktop`, product/window title to Merlin, executable to `merlin.exe`, and database filename to `merlin.sqlite3`. A fixture proves `preflight.sqlite3` is not discovered or modified. No V2 migration or settings repository was added.
+- Production path resolution has no environment lookup. Harness-only resolution requires `MERLIN_TEST_MODE=1`, rejects missing/relative/traversal inputs, canonicalizes the approved directory before opening SQLite, confines the final database file, and rejects an escaping database symlink. The symlink assertion now fails instead of silently passing if its fixture cannot be created.
+- Cargo rejects conflicting/incomplete features, release builds without an explicit build kind, unauthorized harness compilation, and release harnesses outside the separate target. The Tauri pre-bundle hook requires `MERLIN_PRODUCTION_PACKAGE_V1`, rejects all legacy/current override markers, records the raw hash, and removes a stale current installer.
+- WebView2 modes are now `development-harness` and `optimized-harness`; every prior interaction, IPC, persistence, security, accessibility, and console assertion remains. Synthetic data is confined to ignored `test-results/webview2/` artifacts.
+
+### Final commands and outcomes
+
+| Command/check | Actual result |
+| --- | --- |
+| `pnpm format:check` | **PASS** — Prettier-managed files and `cargo fmt --check` passed. |
+| `pnpm typecheck` | **PASS** — application and Node TypeScript configurations passed. |
+| `pnpm lint` | **PASS** — ESLint zero warnings; Clippy all targets with `-D warnings` passed in default and `test-harness` configurations through the approved wrappers. |
+| `pnpm test` | **PASS** — 6 Vitest files/21 tests; 24 default-feature Rust tests; 27 harness-feature Rust tests; 50 Merlin Dark contrast pairings. Both database-path suites included the untouched-legacy fixture; the harness escaping-symlink assertion executed and passed. |
+| `pnpm test:e2e` | **PASS** — all 3 Chromium tests passed in 20.1 seconds, preserving pointer/keyboard/focus/layout, DPR, Markdown/security, axe, and request assertions. |
+| `pnpm tauri build --features custom-protocol,production --no-binary-patching` | **PASS** — explicit production-feature release completed; pre-bundle marker/override checks passed; current Merlin NSIS bundle generated without post-hook binary patching. |
+| `pnpm build:test-harness` | **PASS** — Vite build and direct optimized Cargo build with `custom-protocol,test-harness` completed in 11m55s under the separate target; resulting executable was renamed to `merlin-test-harness.exe` and not bundled. |
+| `pnpm verify:production-boundary` | **PASS** — actual production-feature resolver tests passed; conflicting features, unauthorized harness compilation, and incomplete production features were rejected; ASCII and UTF-16LE production scans found no `MERLIN_TEST_MODE`, `MERLIN_TEST_DATA_DIR`, or `MERLIN_PREFLIGHT_DATA_DIR`; harness positive controls found both current override markers and no production marker; raw hashes differed; pre-/post-bundle production hash matched; regenerated bundle/target excluded the distinct harness name. |
+| Direct `pnpm tauri build --features custom-protocol,test-harness` negative gate | **EXPECTED FAILURE / PASS** — exit code 1 with the explicit harness-wrapper rejection. The production executable and installer hashes were checked before/after and remained unchanged. |
+| Direct `pnpm tauri build` negative gate | **EXPECTED FAILURE / PASS** — exit code 1 requiring an explicit release build kind. Existing production executable and installer hashes remained unchanged. |
+| `pnpm test:webview2` | **PASS** — 2 real WebView2 tests in 1.4 minutes: development-harness interaction/SQLite restart and all hostile-document/accessibility assertions (1.2m), followed by optimized-harness packaged assets/IPC/restart/current-scale checks (5.8s). Neither test used the production executable. |
+| PowerShell AST parse probe for `assert-production-binary.ps1`, `build-test-harness.ps1`, `native-harness.ps1`, and `verify-production-boundary.ps1` | **PASS** — zero parser errors on Windows PowerShell 5.1. The verifier also executed its expected-native-failure capture successfully. |
+| `git diff --check` | **PASS** — no whitespace errors. Git continues to report its normal LF-to-CRLF working-copy warnings on edited tracked files. |
+| Complete diff and untracked-file inspection | **PASS** — all modified/new files were inspected. No later-milestone product workflow, dependency installation, migration change, staging, commit, push, or history mutation occurred. |
+
+Ignored structured evidence is at `test-results/production-boundary/evidence.json` and `test-results/production-boundary/pre-bundle-binary.json`.
+
+### Produced artifacts
+
+| Artifact | Size | SHA-256 |
+| --- | ---: | --- |
+| `src-tauri/target/release/merlin.exe` | 12,502,016 bytes | `75F77D45AAF4FE3C7FBC0BC444E8668195617B7F774F0E4A0C7C71A91C95655B` |
+| `src-tauri/target/release/bundle/nsis/Merlin_0.1.0_x64-setup.exe` | 3,339,202 bytes | `3F8BBB774AEE56D93CA8F26ED282B521621AE3334830F37F8A51EBF44A6F792C` |
+| `src-tauri/target/test-harness/release/merlin-test-harness.exe` | 12,504,064 bytes | `46383537808FEA3A2FC3C374C948993ABD75A111F8EA262A7D188A91BDF1AD65` |
+
+The old ignored `Merlin Preflight_0.1.0_x64-setup.exe` remains as Phase 0 historical output and was not presented as the current bundle. Its retained bytes/hash match the earlier record. The harness path exists only under `target/test-harness/`, not in the production target or generated bundle.
+
+### Corrections during Milestone 1
+
+- Initial targeted test compilation exposed an environment-helper nested `Option`, a missing `Debug` bound in a negative assertion, and a Clippy flagged needless lifetime. These test-only errors were fixed before the final gates; final results above contain no failed or ignored tests.
+- Focused review found that Tauri's automatic dependency-level custom-protocol behavior bypassed a local-only guard, and that Windows PowerShell 5.1 could terminate expected-native-error capture. Cargo build-script enforcement, an explicit harness wrapper/target check, a production-only pre-bundle marker, and nonterminating stderr capture were added and subsequently passed.
+- The first explicit production build succeeded but reported Tauri binary patching after the pre-bundle hash. That intermediate artifact was superseded by the final `--no-binary-patching` build so the controlled raw hash remains unchanged through packaging. Final artifact hashes above are from the superseding build only.
+
+### Milestone 1 limitations and unexecuted checks
+
+- The initial independent-archive/install-lifecycle limitation was closed by the packaging follow-up below: the current NSIS artifact was independently extracted, its application payload matched the reviewed binary byte-for-byte, and isolated install/launch/uninstall checks passed. Authenticode/signing behavior remains unverified. The follow-up used a guarded same-user application-data junction and isolated WebView2 profile, not a separate Windows account, VM, or Windows Sandbox.
+- Before the packaging follow-up, synthetic WebView2 restart tests deliberately used only separately identifiable harnesses. The follow-up subsequently launched the installed production executable for packaged-shell, console, production-path, override-immunity, and legacy-preservation verification without enabling or adding any production override.
+- Hosted CI was not run; all listed results are local Windows 11 executions. No manual screen-reader pass or changed physical display scaling was performed. Existing Phase 0 offline, syntax-class-provenance, junction/race, signing, and other limitations remain unchanged.
+- No claim of full Phase 1 completion or product readiness is made. Milestones 2–6 and their acceptance/CI gates remain outstanding.
+
+## Milestone 1 packaging verification follow-up
+
+### Isolation and safety controls
+
+- The available environment reported current user `HP\Win8.1`, non-elevated PowerShell, Windows `ProductName=Windows 10 Pro`, `DisplayVersion=26H2`, and build `26300`. `WindowsSandbox.exe` and `WindowsSandboxClient.exe` were unavailable. A separate sandbox/OS-user environment was therefore not available without changing machine configuration or credentials.
+- The executed alternative was an isolated **same-user test profile**: repository-local installation at `C:\dev\merlin\test-results\milestone1-installer-followup\install`, an isolated WebView2 profile under `test-results/milestone1-installer-followup/webview2-profile`, and a guarded roaming application-data junction. This is not presented as a separate Windows account, VM, or sandbox.
+- Preflight checks proved no existing Merlin uninstall registrations, checked shortcuts, installation directory, running Merlin process, or `%APPDATA%\com.merlin.desktop`. The existing empty `%LOCALAPPDATA%\com.merlin.desktop` directory had zero children and remained unchanged.
+- The test created `%APPDATA%\com.merlin.desktop` only as a junction to `C:\dev\merlin\test-results\milestone1-installer-followup\isolated-app-data`, after proving the roaming path absent. A synthetic `preflight.sqlite3` sentinel was placed only in that isolated physical target. The junction was removed after uninstall; the real roaming database/legacy paths are absent again, and the isolated evidence remains under ignored `test-results/`.
+- The installed production process received `MERLIN_TEST_MODE=1`, `MERLIN_TEST_DATA_DIR=<test-root>\decoy-current`, and `MERLIN_PREFLIGHT_DATA_DIR=<test-root>\decoy-legacy`. Neither decoy was created, proving the packaged production binary did not honor either override. No test-harness executable or harness feature was used for this launch.
+
+### Exact verification commands and results
+
+| Command/action | Actual result |
+| --- | --- |
+| `& 'C:\Program Files\7-Zip\7z.exe' l -slt 'C:\dev\merlin\src-tauri\target\release\bundle\nsis\Merlin_0.1.0_x64-setup.exe'` | **PASS** — 7-Zip 24.09 independently identified `Type=Nsis`, `SubType=NSIS-3 Unicode BadCmd=13`, physical size 3,339,202 bytes, and listed the application plus six plugin/support payloads. Complete output: `test-results/milestone1-installer-followup/nsis-listing.txt`. |
+| `& 'C:\Program Files\7-Zip\7z.exe' x -y '-oC:\dev\merlin\test-results\milestone1-installer-followup\extracted' 'C:\dev\merlin\src-tauri\target\release\bundle\nsis\Merlin_0.1.0_x64-setup.exe'` | **PASS** — `Everything is Ok`; seven files/12,607,870 uncompressed bytes were extracted without executing the installer. Log: `nsis-extraction.txt`. |
+| `Get-FileHash` and ASCII/UTF-16LE scans of extracted `merlin.exe` | **PASS** — extracted executable is byte-identical to raw/installed production `merlin.exe`; `MERLIN_TEST_MODE`, `MERLIN_TEST_DATA_DIR`, and `MERLIN_PREFLIGHT_DATA_DIR` are absent; `MERLIN_PRODUCTION_PACKAGE_V1` is present. No harness executable was present in the archive. |
+| Guarded `New-Item -ItemType Junction -Path "$env:APPDATA\com.merlin.desktop" -Target 'C:\dev\merlin\test-results\milestone1-installer-followup\isolated-app-data'` | **PASS** — created the intended isolated redirection only after the absent-path guard passed. Database creation/opening therefore used the standard logical production location but an isolated physical target. |
+| `$process = Start-Process -FilePath $installer -ArgumentList @('/S',"/D=$installRoot") -Wait -PassThru` with `$installer` set to the above NSIS path and `$installRoot='C:\dev\merlin\test-results\milestone1-installer-followup\install'` | **PASS** — installer exit code 0. Installed contents were exactly `merlin.exe` (12,502,016 bytes) and `uninstall.exe` (79,449 bytes). No harness/preflight executable was installed. Installation evidence: `installed-evidence.json`. |
+| Installed identity and shortcut inspection | **PASS** — binary `FileDescription=Merlin`, `ProductName=Merlin`, `CompanyName=merlin`, `FileVersion=ProductVersion=0.1.0`; HKCU uninstall `DisplayName=Merlin`, `DisplayVersion=0.1.0`, `Publisher=merlin`, and the expected isolated `InstallLocation`/`UninstallString`. `%APPDATA%\Microsoft\Windows\Start Menu\Programs\Merlin.lnk` targeted the isolated installed `merlin.exe` with the isolated installation as its working directory. |
+| `node --check test-results/milestone1-installer-followup/verify-installed.mjs` | **PASS** — installed-application runtime helper syntax passed. The exact helper remains in ignored evidence storage. |
+| `node test-results/milestone1-installer-followup/verify-installed.mjs` | **PASS** — installed `merlin.exe` loaded `http://tauri.localhost/`, document title Merlin, the current Merlin-native proof shell surface, `SQLite layout ready`, typed Tauri IPC, and `Layout saved to SQLite`; Docs collapsed and persisted, browser `localStorage.length=0`, and captured console errors were `[]`. This is the current proof shell, not a claim that later product navigation exists. |
+| Runtime production-path and legacy assertions in the same helper | **PASS** — logical `%APPDATA%\com.merlin.desktop\merlin.sqlite3` resolved to the isolated physical database; its signature was `SQLite format 3\0`. Saving changed the SQLite WAL SHA-256 from `08DB347358DB79D7EB17AD341083E8EBFB378E615E965C91D400DB8B5721AA1C` to `BD647B9E8D22D84F8B3240EEDCF8BD4B0E56390A089904451C9FE7AE315F4BAA`. Both decoy directories stayed absent. Logical/physical `preflight.sqlite3` sentinel bytes and hash remained unchanged. Full evidence: `installed-runtime-evidence.json`. |
+| `$process = Start-Process -FilePath 'C:\dev\merlin\test-results\milestone1-installer-followup\install\uninstall.exe' -ArgumentList @('/S') -Wait -PassThru` | **PASS** — uninstaller exit code 0. The installation directory, HKCU `Uninstall\Merlin` registration, and current/all-users checked Merlin shortcut locations were absent afterward. No Merlin-named uninstall registrations remained. |
+| `[IO.Directory]::Delete($appDataLink, $false)` and final path checks | **PASS** — removed only the verified application-data junction non-recursively. `%APPDATA%\com.merlin.desktop` and real roaming `merlin.sqlite3`/`preflight.sqlite3` paths are absent. Isolated database evidence remained intact, and the legacy sentinel hash was still identical. Local application-data child count remained zero. Full evidence: `cleanup-evidence.json`. |
+
+The first cleanup attempt used `Remove-Item -LiteralPath $appDataLink -Force`. Uninstall and artifact cleanup had already succeeded, but PowerShell attempted an interactive directory-junction confirmation and failed in non-interactive mode before removing the link. The verified non-recursive `[IO.Directory]::Delete(..., $false)` correction then succeeded without deleting the isolated target. Neither attempt modified the sentinel or real database paths because the guard revalidated the junction first.
+
+### Packaging follow-up hashes and retained evidence
+
+| Artifact/evidence | Size | SHA-256 |
+| --- | ---: | --- |
+| Current `Merlin_0.1.0_x64-setup.exe` | 3,339,202 bytes | `3F8BBB774AEE56D93CA8F26ED282B521621AE3334830F37F8A51EBF44A6F792C` |
+| Extracted/raw/installed `merlin.exe` | 12,502,016 bytes | `75F77D45AAF4FE3C7FBC0BC444E8668195617B7F774F0E4A0C7C71A91C95655B` |
+| Isolated post-launch main SQLite file | 4,096 bytes at runtime | `89A2318C76452BE80E1D743F163F3DD96623B2B05604AA06985C6B5501238362` |
+| Synthetic legacy sentinel before and after | Unchanged | `281C934C7E897CB04113F12FBC21681039D1BF0709090FD9A1F6D309680B6731` |
+
+All seven extracted payload hashes and binary-version identity are retained in `test-results/milestone1-installer-followup/nsis-payload-hashes-and-identity.json`. Baseline, installation, runtime, and cleanup JSON evidence plus NSIS logs and the runtime helper are retained under the same ignored directory.
+
+### Packaging follow-up limitations and change discipline
+
+- The isolation was a same-user repository-local profile plus guarded junction, not a separate Windows user or VM. No claim is made about multi-user installer behavior, elevated/all-users installation, code signing, Authenticode, SmartScreen, upgrade behavior, or a cold launch with OS networking disabled. Shell/console/path checks were automated; no separate manual visual review was performed.
+- No product source or configuration file was changed during this follow-up. Only `BUILD-STATUS.md` and ignored `test-results/milestone1-installer-followup/` tooling/evidence were written. No dependency was installed, no security assertion was weakened, and no staging, commit, push, or history mutation occurred.
+
+## Phase 0 final verification commands and outcomes
+
+The following historical commands completed during Phase 0 after its implementation fixes. They are retained as baseline evidence, not presented as Milestone 1 results. Separate earlier failures are retained in the next section.
 
 | Command | Actual result |
 | --- | --- |
@@ -214,7 +325,7 @@ These limitations do not invalidate the scoped Phase 0 result, but they must not
 - `cargo audit` was not run because it is not installed in the approved dependency set. `pnpm audit --prod` passed, but that is not a Rust vulnerability audit.
 - The global damaged rustup installation remains an external environment issue; repository commands do not depend on it.
 - The large-chunk Vite advisory remains a non-blocking Phase 0 finding, not a product performance acceptance result.
-- All reviewed changes were uncommitted at the pre-commit handoff, and no push or history rewrite was performed. This file is the pre-commit verification snapshot; the single authorized Phase 0 commit's hash and clean-tree confirmation belong to the final commit handoff.
+- Phase 0 was committed as `28d91919f83fae1ad4b47731693f9b5012473639`. The reviewed and accepted Milestone 1 changes are included only in the separately authorized Milestone 1 commit described below; no push or history rewrite has been performed.
 
 ## Changed files and artifacts
 
@@ -226,8 +337,8 @@ These limitations do not invalidate the scoped Phase 0 result, but they must not
 
 ## Exact next task authorized
 
-**Stop after the single authorized Phase 0 foundation commit and report its hash, committed files, verification, and final status.** Do not amend or rewrite existing history. No further implementation is authorized. Phase 1 — Application shell and foundation — and all other product work still require explicit approval.
+**Create one commit containing only the reviewed and accepted Milestone 1 implementation, verification, packaging follow-up, tooling, and documentation changes. Report its hash, changed files, summary, clean working tree, and expected upstream count.** No further implementation is currently authorized. Stop after this commit. Do not push without separate explicit authorization.
 
-## First recommended Phase 1 task after future approval
+## Milestone 1 stop boundary
 
-Start with **Tauri/React shell**, the first Build item in `docs/IMPLEMENTATION-PLAN.md` Phase 1 — Application shell and foundation, followed by the phase's production repositories, navigation/common controls, and acceptance gates. This is a recommendation only; the hygiene pass did not begin it.
+Milestone 2 settings/IPC work and every later milestone remain unauthorized. Do not add the V2 settings migration, settings repositories, generic settings IPC, application navigation, shell redesign, resources/projects, or other product workflows. A future implementation step requires a new explicit milestone authorization.

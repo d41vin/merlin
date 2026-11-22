@@ -1,12 +1,12 @@
 [package]
-name = "merlin-preflight"
+name = "merlin"
 version = "0.1.0"
-description = "Merlin Phase 0 native technical preflight"
+description = "Merlin local-first desktop application"
 edition = "2021"
 rust-version = "1.97.1"
 
 [lib]
-name = "merlin_preflight"
+name = "merlin"
 crate-type = ["rlib"]
 
 [build-dependencies]
@@ -41,4 +41,7 @@ windows = { version = "=0.62.2", features = [
 tempfile = { version = "=3.27.0" }
 
 [features]
+default = []
 custom-protocol = ["tauri/custom-protocol"]
+production = []
+test-harness = []

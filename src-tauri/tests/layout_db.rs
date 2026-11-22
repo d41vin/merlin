@@ -1,7 +1,7 @@
-use merlin_preflight::commands::layout::{load_persisted_layout, store_persisted_layout};
-use merlin_preflight::db::{PreflightDatabase, DATABASE_FILE_NAME};
-use merlin_preflight::error::PreflightErrorCode;
-use merlin_preflight::services::layout::{PanelLayout, PanelState, PANEL_LAYOUT_VERSION};
+use merlin::commands::layout::{load_persisted_layout, store_persisted_layout};
+use merlin::db::{AppDatabase, DATABASE_FILE_NAME};
+use merlin::error::AppErrorCode;
+use merlin::services::layout::{PanelLayout, PanelState, PANEL_LAYOUT_VERSION};
 use rusqlite::Connection;
 use serde_json::json;
 
@@ -29,11 +29,13 @@ fn panel(id: &str, size: f64, restore_size: f64, collapsed: bool) -> PanelState 
 #[test]
 fn migration_restart_and_layout_round_trip_are_persistent_and_idempotent() {
     let directory = tempfile::tempdir().expect("temporary data directory");
-    let expected_database = directory.path().join(DATABASE_FILE_NAME);
+    let expected_database = std::fs::canonicalize(directory.path())
+        .expect("canonical temporary directory")
+        .join(DATABASE_FILE_NAME);
 
     {
         let database =
-            PreflightDatabase::open_in_data_dir(directory.path()).expect("fresh migrated database");
+            AppDatabase::open_in_data_dir(directory.path()).expect("fresh migrated database");
         assert_eq!(database.file_path(), expected_database);
         assert_eq!(
             load_persisted_layout(&database).expect("initial read"),
@@ -47,7 +49,7 @@ fn migration_restart_and_layout_round_trip_are_persistent_and_idempotent() {
     }
 
     {
-        let database = PreflightDatabase::open_in_data_dir(directory.path())
+        let database = AppDatabase::open_in_data_dir(directory.path())
             .expect("restart must apply migrations idempotently");
         assert_eq!(
             load_persisted_layout(&database).expect("restart read"),
@@ -77,7 +79,7 @@ fn migration_restart_and_layout_round_trip_are_persistent_and_idempotent() {
 #[test]
 fn frontend_camel_case_snapshot_deserializes_and_uses_sqlite_json() {
     let directory = tempfile::tempdir().expect("temporary data directory");
-    let database = PreflightDatabase::open_in_data_dir(directory.path()).expect("database");
+    let database = AppDatabase::open_in_data_dir(directory.path()).expect("database");
     let layout = valid_layout();
     let arguments = json!({ "layout": layout.clone() });
     let decoded: PanelLayout =
@@ -102,7 +104,7 @@ fn frontend_camel_case_snapshot_deserializes_and_uses_sqlite_json() {
 #[test]
 fn malformed_layouts_are_rejected_without_replacing_the_last_valid_snapshot() {
     let directory = tempfile::tempdir().expect("temporary data directory");
-    let database = PreflightDatabase::open_in_data_dir(directory.path()).expect("database");
+    let database = AppDatabase::open_in_data_dir(directory.path()).expect("database");
     store_persisted_layout(&database, valid_layout()).expect("baseline valid layout");
 
     let mut cases = Vec::new();
@@ -150,7 +152,7 @@ fn malformed_layouts_are_rejected_without_replacing_the_last_valid_snapshot() {
 
     for case in cases {
         let error = store_persisted_layout(&database, case).expect_err("invalid layout accepted");
-        assert_eq!(error.code, PreflightErrorCode::InvalidLayout);
+        assert_eq!(error.code, AppErrorCode::InvalidLayout);
         assert_eq!(
             load_persisted_layout(&database).expect("read unchanged baseline"),
             Some(valid_layout())

@@ -1,6 +1,8 @@
+pub mod path;
 pub mod sync;
 
-use std::env;
+pub use path::DATABASE_FILE_NAME;
+
 use std::path::{Path, PathBuf};
 use std::sync::{Mutex, MutexGuard};
 use std::time::Duration;
@@ -9,9 +11,10 @@ use rusqlite::{params, Connection, OptionalExtension};
 use serde_json::json;
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 
-use crate::error::{PreflightError, PreflightErrorCode};
+use crate::error::{AppError, AppErrorCode};
 use crate::security::credentials::CredentialReference;
 use crate::services::layout::PanelLayout;
+use path::{database_file_in_directory, prepare_data_directory};
 use sync::{operation_from_row, SyncOperation, SyncState, OPERATION_COLUMNS};
 
 mod embedded {
@@ -19,24 +22,22 @@ mod embedded {
     embed_migrations!("migrations");
 }
 
-pub const DATABASE_FILE_NAME: &str = "preflight.sqlite3";
-pub const DATA_DIRECTORY_ENV: &str = "MERLIN_PREFLIGHT_DATA_DIR";
 const LAYOUT_SETTING_KEY: &str = "preflight.panel_layout.v1";
 const CREDENTIAL_REFERENCE_PROOF_KEY: &str = "preflight.credential_reference_proof";
 
-pub struct PreflightDatabase {
+pub struct AppDatabase {
     connection: Mutex<Connection>,
     file_path: PathBuf,
 }
 
-impl PreflightDatabase {
-    pub fn open_in_data_dir(data_directory: &Path) -> Result<Self, PreflightError> {
-        std::fs::create_dir_all(data_directory)
-            .map_err(|error| PreflightError::io("create the data directory", &error))?;
-        Self::open_file(&data_directory.join(DATABASE_FILE_NAME))
+impl AppDatabase {
+    pub fn open_in_data_dir(data_directory: &Path) -> Result<Self, AppError> {
+        let directory = prepare_data_directory(data_directory)?;
+        let database_file = database_file_in_directory(&directory)?;
+        Self::open_file(&database_file)
     }
 
-    pub fn open_file(file_path: &Path) -> Result<Self, PreflightError> {
+    pub fn open_file(file_path: &Path) -> Result<Self, AppError> {
         let mut connection = Connection::open(file_path)?;
         connection.busy_timeout(Duration::from_secs(5))?;
         connection.execute_batch(
@@ -45,7 +46,7 @@ impl PreflightDatabase {
         )?;
         embedded::migrations::runner()
             .run(&mut connection)
-            .map_err(|_| PreflightError::database())?;
+            .map_err(|_| AppError::database())?;
 
         Ok(Self {
             connection: Mutex::new(connection),
@@ -57,7 +58,7 @@ impl PreflightDatabase {
         &self.file_path
     }
 
-    pub fn load_layout(&self) -> Result<Option<PanelLayout>, PreflightError> {
+    pub fn load_layout(&self) -> Result<Option<PanelLayout>, AppError> {
         let connection = self.lock()?;
         let stored = connection
             .query_row(
@@ -69,17 +70,14 @@ impl PreflightDatabase {
         drop(connection);
 
         stored
-            .map(|value| serde_json::from_str::<PanelLayout>(&value).map_err(PreflightError::from))
+            .map(|value| serde_json::from_str::<PanelLayout>(&value).map_err(AppError::from))
             .transpose()
     }
 
-    pub fn save_layout(&self, layout: &PanelLayout) -> Result<(), PreflightError> {
+    pub fn save_layout(&self, layout: &PanelLayout) -> Result<(), AppError> {
         layout.validate()?;
         let value = serde_json::to_string(layout).map_err(|_| {
-            PreflightError::new(
-                PreflightErrorCode::InvalidLayout,
-                "layout cannot be serialized",
-            )
+            AppError::new(AppErrorCode::InvalidLayout, "layout cannot be serialized")
         })?;
         let timestamp = utc_timestamp()?;
         let connection = self.lock()?;
@@ -96,7 +94,7 @@ impl PreflightDatabase {
     pub fn save_credential_reference_for_proof(
         &self,
         reference: &CredentialReference,
-    ) -> Result<(), PreflightError> {
+    ) -> Result<(), AppError> {
         let value = serde_json::to_string(&json!({ "credentialReference": reference.as_str() }))?;
         let timestamp = utc_timestamp()?;
         let connection = self.lock()?;
@@ -109,7 +107,7 @@ impl PreflightDatabase {
         Ok(())
     }
 
-    pub fn insert_sync_operation(&self, operation: &SyncOperation) -> Result<(), PreflightError> {
+    pub fn insert_sync_operation(&self, operation: &SyncOperation) -> Result<(), AppError> {
         let source_path = database_path(&operation.source_path)?;
         let destination_path = database_path(&operation.destination_path)?;
         let staging_path = database_path(&operation.staging_path)?;
@@ -146,7 +144,7 @@ impl PreflightDatabase {
     pub fn get_sync_operation(
         &self,
         operation_id: &str,
-    ) -> Result<Option<SyncOperation>, PreflightError> {
+    ) -> Result<Option<SyncOperation>, AppError> {
         validate_operation_id(operation_id)?;
         let connection = self.lock()?;
         let sql =
@@ -160,7 +158,7 @@ impl PreflightDatabase {
         &self,
         operation_id: &str,
         state: SyncState,
-    ) -> Result<String, PreflightError> {
+    ) -> Result<String, AppError> {
         validate_operation_id(operation_id)?;
         let timestamp = utc_timestamp()?;
         let connection = self.lock()?;
@@ -169,12 +167,12 @@ impl PreflightDatabase {
             params![operation_id, state.as_str(), timestamp],
         )?;
         if affected != 1 {
-            return Err(PreflightError::database());
+            return Err(AppError::database());
         }
         Ok(timestamp)
     }
 
-    pub fn list_incomplete_sync_operations(&self) -> Result<Vec<SyncOperation>, PreflightError> {
+    pub fn list_incomplete_sync_operations(&self) -> Result<Vec<SyncOperation>, AppError> {
         let connection = self.lock()?;
         let sql = format!(
             "SELECT {OPERATION_COLUMNS} FROM sync_operations \
@@ -189,63 +187,49 @@ impl PreflightDatabase {
         Ok(operations)
     }
 
-    fn lock(&self) -> Result<MutexGuard<'_, Connection>, PreflightError> {
-        self.connection.lock().map_err(|_| {
-            PreflightError::new(
-                PreflightErrorCode::Database,
-                "SQLite connection lock failed",
-            )
-        })
+    fn lock(&self) -> Result<MutexGuard<'_, Connection>, AppError> {
+        self.connection
+            .lock()
+            .map_err(|_| AppError::new(AppErrorCode::Database, "SQLite connection lock failed"))
     }
 }
 
-pub fn resolve_data_directory(fallback: &Path) -> PathBuf {
-    env::var_os(DATA_DIRECTORY_ENV)
-        .filter(|value| !value.is_empty())
-        .map(PathBuf::from)
-        .unwrap_or_else(|| fallback.to_path_buf())
-}
-
-fn database_path(path: &Path) -> Result<&str, PreflightError> {
+fn database_path(path: &Path) -> Result<&str, AppError> {
     path.to_str().ok_or_else(|| {
-        PreflightError::new(
-            PreflightErrorCode::PathUnavailable,
+        AppError::new(
+            AppErrorCode::PathUnavailable,
             "Phase 0 recovery records require UTF-8 paths",
         )
     })
 }
 
-fn validate_operation_id(operation_id: &str) -> Result<(), PreflightError> {
-    uuid::Uuid::parse_str(operation_id).map_err(|_| {
-        PreflightError::new(
-            PreflightErrorCode::RecoveryRequired,
-            "invalid sync operation ID",
-        )
-    })?;
+fn validate_operation_id(operation_id: &str) -> Result<(), AppError> {
+    uuid::Uuid::parse_str(operation_id)
+        .map_err(|_| AppError::new(AppErrorCode::RecoveryRequired, "invalid sync operation ID"))?;
     if operation_id.len() != 36 {
-        return Err(PreflightError::new(
-            PreflightErrorCode::RecoveryRequired,
+        return Err(AppError::new(
+            AppErrorCode::RecoveryRequired,
             "invalid sync operation ID",
         ));
     }
     Ok(())
 }
 
-fn utc_timestamp() -> Result<String, PreflightError> {
+fn utc_timestamp() -> Result<String, AppError> {
     OffsetDateTime::now_utc()
         .format(&Rfc3339)
-        .map_err(|_| PreflightError::database())
+        .map_err(|_| AppError::database())
 }
 
 #[cfg(test)]
 mod tests {
-    use super::PreflightDatabase;
+    use super::AppDatabase;
 
     #[test]
     fn connection_has_required_sqlite_safety_settings() {
         let directory = tempfile::tempdir().expect("temporary directory");
         let database =
-            PreflightDatabase::open_in_data_dir(directory.path()).expect("database should open");
+            AppDatabase::open_in_data_dir(directory.path()).expect("database should open");
         let connection = database.lock().expect("connection lock");
         let foreign_keys: i64 = connection
             .query_row("PRAGMA foreign_keys", [], |row| row.get(0))

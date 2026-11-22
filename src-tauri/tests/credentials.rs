@@ -1,4 +1,4 @@
-use merlin_preflight::security::credentials::CredentialReference;
+use merlin::security::credentials::CredentialReference;
 use uuid::Uuid;
 
 #[test]
@@ -29,9 +29,9 @@ fn credential_reference_parser_is_strict_and_versioned() {
 #[cfg(windows)]
 #[test]
 fn windows_credential_manager_round_trip_keeps_synthetic_secret_out_of_sqlite() {
-    use merlin_preflight::db::PreflightDatabase;
-    use merlin_preflight::error::PreflightErrorCode;
-    use merlin_preflight::security::credentials::{
+    use merlin::db::AppDatabase;
+    use merlin::error::AppErrorCode;
+    use merlin::security::credentials::{
         delete_preflight_secret, get_preflight_secret, set_preflight_secret,
     };
     use rusqlite::Connection;
@@ -45,7 +45,7 @@ fn windows_credential_manager_round_trip_keeps_synthetic_secret_out_of_sqlite() 
     }
 
     let directory = tempfile::tempdir().expect("temporary data directory");
-    let database = PreflightDatabase::open_in_data_dir(directory.path()).expect("database");
+    let database = AppDatabase::open_in_data_dir(directory.path()).expect("database");
     let reference = CredentialReference::new_random();
     let _guard = DeleteOnDrop(reference.clone());
     let secret = Zeroizing::new(format!(
@@ -93,7 +93,7 @@ fn windows_credential_manager_round_trip_keeps_synthetic_secret_out_of_sqlite() 
 
     delete_preflight_secret(&reference).expect("delete synthetic credential");
     let error = get_preflight_secret(&reference).expect_err("deleted credential returned");
-    assert_eq!(error.code, PreflightErrorCode::CredentialNotFound);
+    assert_eq!(error.code, AppErrorCode::CredentialNotFound);
 }
 
 #[cfg(windows)]

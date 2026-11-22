@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::error::{PreflightError, PreflightErrorCode};
+use crate::error::{AppError, AppErrorCode};
 
 pub const PANEL_LAYOUT_VERSION: u8 = 1;
 pub const ORDERED_PANEL_IDS: [&str; 4] = ["docs", "todos", "activity", "resources"];
@@ -23,7 +23,7 @@ pub struct PanelState {
 }
 
 impl PanelLayout {
-    pub fn validate(&self) -> Result<(), PreflightError> {
+    pub fn validate(&self) -> Result<(), AppError> {
         if self.version != PANEL_LAYOUT_VERSION {
             return Err(invalid("layout version must be 1"));
         }
@@ -68,6 +68,6 @@ impl PanelLayout {
     }
 }
 
-fn invalid(message: &str) -> PreflightError {
-    PreflightError::new(PreflightErrorCode::InvalidLayout, message)
+fn invalid(message: &str) -> AppError {
+    AppError::new(AppErrorCode::InvalidLayout, message)
 }

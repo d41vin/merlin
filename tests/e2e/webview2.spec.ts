@@ -177,7 +177,7 @@ test("real WebView2 interactions and SQLite persistence survive a native process
   }
 })
 
-test("production executable launches packaged assets and typed SQLite IPC", async () => {
+test("optimized harness launches packaged assets and typed SQLite IPC", async () => {
   test.setTimeout(360_000)
   prepareWebView2Artifacts()
   let session: WebView2Session | undefined
@@ -191,10 +191,10 @@ test("production executable launches packaged assets and typed SQLite IPC", asyn
   }
 
   try {
-    session = await startWebView2("production")
+    session = await startWebView2("optimized-harness")
     observeErrors(session.page)
     await waitForNativeReady(session.page)
-    expect(session.mode).toBe("production")
+    expect(session.mode).toBe("optimized-harness")
     expect(session.page.url()).toContain("tauri.localhost")
     expect(session.page.url()).not.toContain("localhost:5173")
     expect(

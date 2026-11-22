@@ -1,13 +1,11 @@
 use std::fs;
 use std::path::PathBuf;
 
-use merlin_preflight::db::sync::{SyncSide, SyncState};
-use merlin_preflight::db::PreflightDatabase;
-use merlin_preflight::filesystem::hash::{sha256_bytes, sha256_file};
-use merlin_preflight::filesystem::path::RegisteredRoot;
-use merlin_preflight::filesystem::sync::{
-    InterruptionPoint, SyncOutcome, SyncRequest, SyncService,
-};
+use merlin::db::sync::{SyncSide, SyncState};
+use merlin::db::AppDatabase;
+use merlin::filesystem::hash::{sha256_bytes, sha256_file};
+use merlin::filesystem::path::RegisteredRoot;
+use merlin::filesystem::sync::{InterruptionPoint, SyncOutcome, SyncRequest, SyncService};
 
 const ORIGINAL: &[u8] = b"original destination bytes\n";
 const CHANGED: &[u8] = b"changed source bytes\n";
@@ -15,7 +13,7 @@ const EXTERNAL: &[u8] = b"independent external destination edit\n";
 const GIT_CONTEXT: &str = "branch=main;head=0123456789abcdef";
 
 struct Fixture {
-    database: PreflightDatabase,
+    database: AppDatabase,
     source_root: RegisteredRoot,
     destination_root: RegisteredRoot,
     request: SyncRequest,
@@ -37,7 +35,7 @@ impl Fixture {
         fs::write(&destination_path, ORIGINAL).expect("destination fixture");
         let original_hash = sha256_bytes(ORIGINAL);
         let changed_hash = sha256_bytes(CHANGED);
-        let database = PreflightDatabase::open_in_data_dir(directory.path().join("data").as_path())
+        let database = AppDatabase::open_in_data_dir(directory.path().join("data").as_path())
             .expect("sync operation database");
         let request = SyncRequest {
             source_side: SyncSide::Repository,
@@ -329,7 +327,7 @@ fn restart_reloads_persisted_state_and_recovery_commit_is_idempotent() {
     let database_path = database.file_path().to_path_buf();
     drop(database);
 
-    let restarted = PreflightDatabase::open_file(&database_path).expect("restart database");
+    let restarted = AppDatabase::open_file(&database_path).expect("restart database");
     let service = SyncService::new(&restarted, source_root, destination_root);
     let reports = service.recover_all(GIT_CONTEXT).expect("startup recovery");
     assert_eq!(reports.len(), 1);

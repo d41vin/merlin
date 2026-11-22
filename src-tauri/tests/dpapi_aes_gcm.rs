@@ -1,7 +1,7 @@
 #![cfg(windows)]
 
-use merlin_preflight::error::PreflightErrorCode;
-use merlin_preflight::security::dpapi_aes_gcm::{
+use merlin::error::AppErrorCode;
+use merlin::security::dpapi_aes_gcm::{
     decrypt_sensitive_bytes_for_preflight, encrypt_sensitive_bytes_for_preflight,
     unwrap_aes_key_with_dpapi, wrap_aes_key_with_dpapi,
 };
@@ -34,7 +34,7 @@ fn tampering_or_wrong_dpapi_data_is_rejected_without_a_fallback() {
     ciphertext_tampered.ciphertext[index] ^= 0x80;
     let error = decrypt_sensitive_bytes_for_preflight(&ciphertext_tampered)
         .expect_err("tampered ciphertext authenticated");
-    assert_eq!(error.code, PreflightErrorCode::Crypto);
+    assert_eq!(error.code, AppErrorCode::Crypto);
 
     let mut nonce_tampered = envelope.clone();
     nonce_tampered.nonce[0] ^= 1;

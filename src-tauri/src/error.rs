@@ -1,10 +1,10 @@
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-/// Stable, content-free error codes returned by native Phase 0 proofs.
+/// Stable, content-free error codes returned by the native application boundary.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
-pub enum PreflightErrorCode {
+pub enum AppErrorCode {
     InvalidLayout,
     Database,
     Io,
@@ -27,13 +27,13 @@ pub enum PreflightErrorCode {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Error)]
 #[error("{message}")]
 #[serde(rename_all = "camelCase")]
-pub struct PreflightError {
-    pub code: PreflightErrorCode,
+pub struct AppError {
+    pub code: AppErrorCode,
     pub message: String,
 }
 
-impl PreflightError {
-    pub(crate) fn new(code: PreflightErrorCode, message: impl Into<String>) -> Self {
+impl AppError {
+    pub(crate) fn new(code: AppErrorCode, message: impl Into<String>) -> Self {
         Self {
             code,
             message: message.into(),
@@ -41,7 +41,7 @@ impl PreflightError {
     }
 
     pub(crate) fn database() -> Self {
-        Self::new(PreflightErrorCode::Database, "SQLite operation failed")
+        Self::new(AppErrorCode::Database, "SQLite operation failed")
     }
 
     pub(crate) fn io(action: &str, error: &std::io::Error) -> Self {
@@ -50,35 +50,35 @@ impl PreflightError {
         }
 
         Self::new(
-            PreflightErrorCode::Io,
+            AppErrorCode::Io,
             format!("filesystem operation failed while attempting to {action}"),
         )
     }
 
     pub(crate) fn path_unavailable() -> Self {
         Self::new(
-            PreflightErrorCode::PathUnavailable,
+            AppErrorCode::PathUnavailable,
             "path is unavailable; absence does not establish deletion",
         )
     }
 
     pub(crate) fn conflict(message: &str) -> Self {
-        Self::new(PreflightErrorCode::Conflict, message)
+        Self::new(AppErrorCode::Conflict, message)
     }
 
     pub(crate) fn crypto(message: &str) -> Self {
-        Self::new(PreflightErrorCode::Crypto, message)
+        Self::new(AppErrorCode::Crypto, message)
     }
 }
 
-impl From<rusqlite::Error> for PreflightError {
+impl From<rusqlite::Error> for AppError {
     fn from(_: rusqlite::Error) -> Self {
         Self::database()
     }
 }
 
-impl From<serde_json::Error> for PreflightError {
+impl From<serde_json::Error> for AppError {
     fn from(_: serde_json::Error) -> Self {
-        Self::new(PreflightErrorCode::Database, "stored JSON is invalid")
+        Self::new(AppErrorCode::Database, "stored JSON is invalid")
     }
 }
