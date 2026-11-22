@@ -32,6 +32,12 @@ test("pointer and keyboard panel behavior, semantic rendering, and accessibility
     page.getByRole("heading", { name: "Merlin Phase 0 technical preflight" }),
   ).toBeVisible()
   await expect(page.getByTestId("layout-status")).toHaveText("Browser-only interaction proof")
+  await expect(page.getByTestId("settings-status")).toHaveText(
+    "Browser-only settings defaults; native persistence unavailable",
+  )
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "merlin-dark")
+  await expect(page.locator("html")).toHaveAttribute("data-density", "default")
+  await expect(page.locator("html")).not.toHaveAttribute("data-force-reduced-motion")
 
   const firstHandle = page.getByRole("separator", { name: "Resize Docs and Todos" })
   await expect(firstHandle).toHaveAttribute("tabindex", "0")

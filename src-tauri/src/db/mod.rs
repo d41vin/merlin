@@ -1,4 +1,5 @@
 pub mod path;
+pub mod settings;
 pub mod sync;
 
 pub use path::DATABASE_FILE_NAME;

@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs"
+
 import AxeBuilder from "@axe-core/playwright"
 import { expect, test, type Page } from "@playwright/test"
 
@@ -21,9 +23,41 @@ async function waitForNativeReady(page: Page) {
   await expect(page.getByTestId("layout-status")).toHaveText("SQLite layout ready", {
     timeout: 90_000,
   })
+  await expect(page.getByTestId("settings-status")).toHaveText("SQLite settings ready", {
+    timeout: 90_000,
+  })
   await expect(page.locator(".merlin-fixture-row[data-result='pass']")).toHaveCount(
     MARKDOWN_FIXTURES.length,
     { timeout: 90_000 },
+  )
+}
+
+interface ApplicationSettings {
+  version: 1
+  themeSlug: "merlin-dark"
+  density: "default" | "compact"
+  forceReducedMotion: boolean
+  usedDefaults: boolean
+}
+
+async function invokeNative<T>(
+  page: Page,
+  command: string,
+  args: Record<string, unknown> = {},
+): Promise<T> {
+  return page.evaluate(
+    async ({ command, args }) => {
+      const internals = (
+        window as Window & {
+          __TAURI_INTERNALS__?: {
+            invoke<T>(command: string, args: Record<string, unknown>): Promise<T>
+          }
+        }
+      ).__TAURI_INTERNALS__
+      if (!internals) throw new Error("Tauri IPC is unavailable")
+      return internals.invoke<T>(command, args)
+    },
+    { command, args },
   )
 }
 
@@ -32,9 +66,11 @@ test("real WebView2 interactions and SQLite persistence survive a native process
   prepareWebView2Artifacts()
   let session: WebView2Session | undefined
   const consoleErrors: string[] = []
+  const consoleMessages: string[] = []
   const remoteRequests: string[] = []
   const observePage = (page: Page) => {
     page.on("console", (message) => {
+      consoleMessages.push(message.text())
       if (message.type() === "error") {
         consoleErrors.push(`${message.text()} (${JSON.stringify(message.location())})`)
       }
@@ -55,6 +91,78 @@ test("real WebView2 interactions and SQLite persistence survive a native process
       ),
     ).toBe(true)
     expect(await session.page.evaluate(() => window.localStorage.length)).toBe(0)
+
+    const defaultSettings = await invokeNative<ApplicationSettings>(session.page, "settings_get")
+    expect(defaultSettings).toEqual({
+      version: 1,
+      themeSlug: "merlin-dark",
+      density: "default",
+      forceReducedMotion: false,
+      usedDefaults: false,
+    })
+    await expect(session.page.locator("html")).toHaveAttribute("data-theme", "merlin-dark")
+    await expect(session.page.locator("html")).toHaveAttribute("data-density", "default")
+    await expect(session.page.locator("html")).not.toHaveAttribute("data-force-reduced-motion")
+
+    const savedTheme = await invokeNative<ApplicationSettings>(session.page, "settings_set_theme", {
+      theme: "merlin-dark",
+    })
+    expect(savedTheme.themeSlug).toBe("merlin-dark")
+    const savedDensity = await invokeNative<ApplicationSettings>(
+      session.page,
+      "settings_set_density",
+      { density: "compact" },
+    )
+    expect(savedDensity.density).toBe("compact")
+    const savedMotion = await invokeNative<ApplicationSettings>(
+      session.page,
+      "settings_set_reduce_motion",
+      { forceReducedMotion: true },
+    )
+    expect(savedMotion.forceReducedMotion).toBe(true)
+
+    const canary = "sk-test-WEBVIEW2-DO-NOT-REFLECT"
+    const rejectionResults = await session.page.evaluate(async (value) => {
+      const internals = (
+        window as Window & {
+          __TAURI_INTERNALS__?: {
+            invoke(command: string, args: Record<string, unknown>): Promise<unknown>
+          }
+        }
+      ).__TAURI_INTERNALS__
+      if (!internals) throw new Error("Tauri IPC is unavailable")
+      const attempts: { command: string; args: Record<string, unknown> }[] = [
+        { command: "settings_set_theme", args: { theme: value } },
+        { command: "settings_set_density", args: { density: value } },
+        { command: "settings_set_theme", args: { theme: { value } } },
+        { command: "settings_set_reduce_motion", args: { forceReducedMotion: value } },
+      ]
+      const results = []
+      for (const attempt of attempts) {
+        try {
+          await internals.invoke(attempt.command, attempt.args)
+          results.push({ succeeded: true, serialized: "", message: "" })
+        } catch (error) {
+          results.push({
+            succeeded: false,
+            serialized: JSON.stringify(error),
+            message: error instanceof Error ? error.message : String(error),
+          })
+        }
+      }
+      return results
+    }, canary)
+    expect(rejectionResults).toHaveLength(4)
+    for (const rejection of rejectionResults) {
+      expect(rejection.succeeded).toBe(false)
+      expect(rejection.serialized).not.toContain(canary)
+      expect(rejection.message).not.toContain(canary)
+    }
+    expect(consoleMessages.join("\n")).not.toContain(canary)
+    expect(readFileSync("test-results/webview2/process.log", "utf8")).not.toContain(canary)
+    const afterRejected = await invokeNative<ApplicationSettings>(session.page, "settings_get")
+    expect(afterRejected.density).toBe("compact")
+    expect(afterRejected.forceReducedMotion).toBe(true)
 
     const handle = session.page.getByRole("separator", { name: "Resize Docs and Todos" })
     const bounds = await handle.boundingBox()
@@ -100,6 +208,13 @@ test("real WebView2 interactions and SQLite persistence survive a native process
     observePage(session.page)
     await waitForNativeReady(session.page)
     expect(await layout(session.page)).toEqual(persisted)
+    const restoredSettings = await invokeNative<ApplicationSettings>(session.page, "settings_get")
+    expect(restoredSettings.density).toBe("compact")
+    expect(restoredSettings.forceReducedMotion).toBe(true)
+    expect(restoredSettings.usedDefaults).toBe(false)
+    await expect(session.page.locator("html")).toHaveAttribute("data-density", "compact")
+    await expect(session.page.locator("html")).toHaveAttribute("data-force-reduced-motion", "true")
+    await expect(session.page.locator("html")).toHaveAttribute("data-theme", "merlin-dark")
     await expect(session.page.getByTestId("panel-docs")).toHaveAttribute("data-collapsed")
 
     const restartedHandle = session.page.getByRole("separator", {
@@ -207,6 +322,8 @@ test("optimized harness launches packaged assets and typed SQLite IPC", async ()
       session.page.getByTestId("milkdown-editor-host").locator("[contenteditable='true']"),
     ).toHaveAccessibleName("Markdown rich editor")
     expect(await session.page.evaluate(() => window.localStorage.length)).toBe(0)
+    await expect(session.page.locator("html")).toHaveAttribute("data-density", "default")
+    await expect(session.page.locator("html")).not.toHaveAttribute("data-force-reduced-motion")
     const nativeHairline = await session.page
       .locator(".merlin-surface")
       .first()
@@ -232,11 +349,24 @@ test("optimized harness launches packaged assets and typed SQLite IPC", async ()
     await expect(session.page.getByTestId("layout-status")).toHaveText("Layout saved to SQLite")
     const saved = await layout(session.page)
     expect(saved.panels[0]!.collapsed).toBe(true)
+    await invokeNative<ApplicationSettings>(session.page, "settings_set_density", {
+      density: "compact",
+    })
+    await invokeNative<ApplicationSettings>(session.page, "settings_set_reduce_motion", {
+      forceReducedMotion: true,
+    })
 
     session = await restartWebView2(session)
     observeErrors(session.page)
     await waitForNativeReady(session.page)
     expect(await layout(session.page)).toEqual(saved)
+    const settings = await invokeNative<ApplicationSettings>(session.page, "settings_get")
+    expect(settings.density).toBe("compact")
+    expect(settings.forceReducedMotion).toBe(true)
+    expect(settings.usedDefaults).toBe(false)
+    await expect(session.page.locator("html")).toHaveAttribute("data-density", "compact")
+    await expect(session.page.locator("html")).toHaveAttribute("data-force-reduced-motion", "true")
+    expect(await session.page.evaluate(() => window.localStorage.length)).toBe(0)
     expect(consoleErrors).toEqual([])
   } finally {
     if (session) await stopWebView2(session)

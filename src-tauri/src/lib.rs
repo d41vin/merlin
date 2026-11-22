@@ -38,6 +38,10 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::layout::preflight_get_layout,
             commands::layout::preflight_save_layout,
+            commands::settings::settings_get,
+            commands::settings::settings_set_theme,
+            commands::settings::settings_set_density,
+            commands::settings::settings_set_reduce_motion,
         ])
         .run(tauri::generate_context!())
         .expect("Merlin encountered a fatal Tauri runtime error");

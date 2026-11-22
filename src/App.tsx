@@ -5,10 +5,40 @@ import { MarkdownProof } from "@/components/MarkdownProof"
 import { PanelProof } from "@/components/PanelProof"
 import { createLayoutStore } from "@/layout/store"
 import { classifyDocumentLink } from "@/markdown/url-policy"
+import { applyApplicationSettings } from "@/settings/apply"
+import { defaultApplicationSettings } from "@/settings/model"
+import { createApplicationSettingsStore } from "@/settings/store"
 
 export function App() {
   const [store] = useState(createLayoutStore)
+  const [settingsStore] = useState(createApplicationSettingsStore)
+  const [settingsStatus, setSettingsStatus] = useState("Loading application settings")
   const [externalLink, setExternalLink] = useState("No external link selected")
+
+  useEffect(() => {
+    let active = true
+    settingsStore
+      .load()
+      .then((stored) => {
+        if (!active) return
+        const applied = applyApplicationSettings(stored)
+        setSettingsStatus(
+          settingsStore.kind === "sqlite"
+            ? applied.usedDefaults
+              ? "SQLite settings ready with safe defaults"
+              : "SQLite settings ready"
+            : "Browser-only settings defaults; native persistence unavailable",
+        )
+      })
+      .catch(() => {
+        if (!active) return
+        applyApplicationSettings(defaultApplicationSettings())
+        setSettingsStatus("Settings load failed; safe defaults applied")
+      })
+    return () => {
+      active = false
+    }
+  }, [settingsStore])
 
   useEffect(() => {
     function handleExternalLink(event: Event) {
@@ -46,6 +76,9 @@ export function App() {
           remote-fetch permission. Native proofs run separately with temporary data and synthetic
           credentials.
         </p>
+        <output className="merlin-metadata" role="status" data-testid="settings-status">
+          {settingsStatus}
+        </output>
         <output className="merlin-metadata" role="status" data-testid="external-link-status">
           {externalLink}
         </output>

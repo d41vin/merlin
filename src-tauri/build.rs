@@ -1,6 +1,7 @@
 use std::path::Path;
 
 fn main() {
+    println!("cargo:rerun-if-changed=migrations");
     println!("cargo:rerun-if-env-changed=MERLIN_TEST_HARNESS_BUILD");
 
     let production = std::env::var_os("CARGO_FEATURE_PRODUCTION").is_some();

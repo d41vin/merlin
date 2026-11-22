@@ -62,8 +62,8 @@ fn migration_restart_and_layout_round_trip_are_persistent_and_idempotent() {
         .query_row("SELECT count(*) FROM refinery_schema_history", [], |row| {
             row.get(0)
         })
-        .expect("one recorded migration");
-    assert_eq!(migration_count, 1);
+        .expect("two recorded migrations");
+    assert_eq!(migration_count, 2);
     for table in ["settings", "sync_operations"] {
         let count: i64 = connection
             .query_row(

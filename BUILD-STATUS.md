@@ -4,11 +4,12 @@ Last updated: 2026-11-23
 
 ## Current phase and exact authorization
 
-- **Current phase:** Phase 1 — Application shell and foundation, **Milestone 1: Production identity and native database lifecycle**.
-- **Exact task authorized:** The user reviewed the packaging follow-up and **accepted Milestone 1 on 2026-11-23**. The only newly authorized action is one reviewed Milestone 1 commit, preceded by complete final-diff/staging review. The commit hash and post-commit status belong to the final commit handoff. Do not begin Milestone 2 or any later product work.
+- **Current phase:** Phase 1 — Application shell and foundation, **Milestone 2: Production settings foundation**.
+- **Exact task authorized:** The user accepted Milestone 2 and authorized its separate Milestone 2-only commit and final status-file hygiene amendment on 2026-11-23. The amended commit retains parent `2e55e7232c12b1e86a415f0e33d1a88a7dd1a1c7`. Do not push or begin Milestone 3; no further implementation or commit is currently authorized.
 - **Phase 0 baseline:** Commit `28d91919f83fae1ad4b47731693f9b5012473639` exists and the repository was clean when Phase 1 planning completed. Phase 0 passed its approved technical-preflight scope, subject to the offline and trusted-renderer syntax-class-provenance limitations retained below. Its proofs are not completed product workflows.
-- **Milestone 1 status:** **Accepted by the user.** Implementation, automated verification, and the separately authorized packaging verification follow-up passed. The React presentation remains the Phase 0 proof shell until the separately authorized shell milestones; Overview, Projects, Resources, and other product workflows remain unimplemented.
-- **Stop boundary:** Stage only the reviewed Milestone 1 changes and create one conventional commit; then stop and report the hash, files, summary, upstream count, and clean status. **Milestone 2 is not authorized. Do not push.**
+- **Milestone 1 status:** **Accepted and committed by the user-authorized checkpoint** as `2e55e7232c12b1e86a415f0e33d1a88a7dd1a1c7` (`feat: establish Merlin production foundation`). Implementation, automated verification, and the separately authorized packaging verification follow-up passed. The React presentation remains the Phase 0 proof shell until the separately authorized shell milestones; Overview, Projects, Resources, and other product workflows remain unimplemented.
+- **Milestone 2 status:** **Accepted and committed** (`feat: establish persistent application settings`). The amended commit retains the accepted Milestone 1 parent. The approved V2 migration, production settings boundary, frontend startup integration, real WebView2 persistence proofs, and final commit hygiene passed. The source-level audit found no required corrections. The final commit contains exactly the 26 reviewed text files, and the working tree and index are clean.
+- **Stop boundary:** Milestone 2 implementation, its authorized commit, and the final status-file hygiene amendment are complete. **Do not push and do not begin Milestone 3.**
 
 ## Phase 1 approved decisions
 
@@ -17,6 +18,7 @@ Last updated: 2026-11-23
 - The optimized harness uses a separate Cargo target directory and the distinct executable `merlin-test-harness.exe`. It must not enter the normal production bundle. Production binary marker absence, harness positive control, feature-conflict rejection, and package exclusion are required verification gates.
 - Harness overrides additionally require `MERLIN_TEST_MODE=1` and a validated absolute `MERLIN_TEST_DATA_DIR`. The directory is canonicalized and validated before database creation/opening, and the final database file must remain inside it. Normal production resolver tests must prove environment variables cannot redirect storage.
 - Approved future-workbench defaults are Docs 35%, Todos 30%, Activity 20%, Resources 15%, with open minima 20%, 20%, 12%, and 12%. This records the approved contract only; layout/product changes belong to later separately authorized milestones.
+- Milestone 2 persists exactly `app.theme_slug.v1`, `app.density.v1`, and `app.accessibility.force_reduced_motion.v1`. Its repository writes only individual allowlisted keys. Missing, malformed, wrong-type, or unsupported individual values recover non-destructively with per-field defaults and `usedDefaults=true`; actual database/migration failures remain errors. False reduced motion follows the operating system and true forces reduction without overriding an operating-system request. Only `settings_get`, `settings_set_theme`, `settings_set_density`, and `settings_set_reduce_motion` are added; all validation errors must be content-free, including Serde/Tauri failures. Browser reads may use defaults, browser writes report unavailable native persistence, and browser storage remains prohibited.
 
 ## Phase 0 handoff summary
 
@@ -168,6 +170,70 @@ All seven extracted payload hashes and binary-version identity are retained in `
 
 - The isolation was a same-user repository-local profile plus guarded junction, not a separate Windows user or VM. No claim is made about multi-user installer behavior, elevated/all-users installation, code signing, Authenticode, SmartScreen, upgrade behavior, or a cold launch with OS networking disabled. Shell/console/path checks were automated; no separate manual visual review was performed.
 - No product source or configuration file was changed during this follow-up. Only `BUILD-STATUS.md` and ignored `test-results/milestone1-installer-followup/` tooling/evidence were written. No dependency was installed, no security assertion was weakened, and no staging, commit, push, or history mutation occurred.
+
+## Milestone 2 implementation and verification
+
+### Implemented scope
+
+- Added `V2__production_application_settings.sql` without changing V1. Refinery applies V2 through the existing startup lifecycle and seeds exactly `app.theme_slug.v1` = `"merlin-dark"`, `app.density.v1` = `"default"`, and `app.accessibility.force_reduced_motion.v1` = `false` with `ON CONFLICT(key) DO NOTHING`. Existing application values, layout rows, credential-reference proof rows, sync metadata, schema, timestamps, and V1 migration history are preserved. `git hash-object` and `git rev-parse HEAD:...` both identify the unchanged V1 blob as `848e3b3747a821f013724aee47a9dd91faf729ac`.
+- Added the crate-private `db/settings.rs` repository. It selects only the three approved keys and writes one parameterized allowlisted key at a time; no snapshot/table replacement or renderer-provided key exists.
+- Added the typed settings service and serializable version-1 snapshot (`themeSlug`, `density`, `forceReducedMotion`, `usedDefaults`). Each missing, malformed, wrong-type, or unsupported field independently receives its safe default without rewriting stored bytes. Explicit valid updates repair only their own key. Operational database failures remain `database` errors.
+- Added exactly `settings_get`, `settings_set_theme`, `settings_set_density`, and `settings_set_reduce_motion`. String and boolean IPC input deserializers replace Serde errors with fixed messages before service validation. Rejected secret-like and SQL-shaped values remain absent from error values and SQLite. Existing preflight layout commands, capabilities, CSP, database resolver, and proof-only APIs remain unchanged.
+- Frontend startup still applies Merlin Dark synchronously, then validates native snapshots before applying `data-theme`, `data-density`, and `data-force-reduced-motion`. False forced motion leaves the operating-system media query in control; true applies the additional reduction selectors. Browser-only reads use defaults, browser-only writes report unavailable native persistence, and no browser storage was added.
+- Added strict frontend model/transport/application tests and real development/optimized WebView2 IPC/restart assertions. The WebView2 suite also proves rejected IPC values are absent from captured console and native process logs. No settings screen, theme picker, navigation, or other product UI was introduced.
+- Added `cargo:rerun-if-changed=migrations` so newly appended migrations are reliably embedded on subsequent Cargo builds. The pre-existing layout migration test now expects two recorded migrations; all its layout persistence and malformed-layout assertions remain intact.
+
+### Final commands and outcomes
+
+| Command/check | Actual result |
+| --- | --- |
+| `pnpm exec vitest run src/settings` | **PASS** — 3 focused files, 9 tests. |
+| `powershell -NoProfile -File scripts/native.ps1 cargo test --manifest-path src-tauri/Cargo.toml --locked --test settings_db` | **PASS** — 9 migration/repository/service/command-boundary tests, including real Refinery V1 upgrade, complete V1 history preservation, idempotence, independent layout rows, corruption recovery, restart persistence, and content-free errors. |
+| `powershell -NoProfile -File scripts/native-harness.ps1 cargo test --manifest-path src-tauri/Cargo.toml --locked --features test-harness --test settings_db` | **PASS** — same 9 settings tests under the harness feature. |
+| `powershell -NoProfile -File scripts/native.ps1 cargo test --manifest-path src-tauri/Cargo.toml --locked --test layout_db --test settings_db` | **PASS after final history-strength edit** — 3 layout and 9 settings tests passed together. |
+| `pnpm format:check` | **PASS** — all Prettier-managed files and Rust formatting passed. |
+| `pnpm typecheck` | **PASS** — application and Node TypeScript configurations passed. |
+| `pnpm lint` | **PASS** — ESLint zero warnings; Clippy `-D warnings` passed for default/all-target and harness/all-target builds. |
+| `pnpm test` | **PASS on final complete rerun** — 9 Vitest files/30 tests; 33 default-feature Rust tests; 36 harness-feature Rust tests; 50 Merlin Dark contrast pairings. No failed, ignored, or skipped tests. |
+| `pnpm test:e2e` | **PASS** — all 3 Chromium tests passed in 1.3 minutes, including browser settings defaults, layout interaction, accessibility, Markdown/security, DPR, and no-localStorage assertions. |
+| `pnpm build` | **PASS** — Vite production build. The non-failing large-chunk advisory remains: main JS 1,019.91 kB (313.31 kB gzip). |
+| `pnpm build:test-harness` | **PASS** — Vite build and separately targeted optimized `custom-protocol,test-harness` release completed in 1 minute 48 seconds; executable retained only as `merlin-test-harness.exe`. |
+| `pnpm tauri build --features custom-protocol,production --no-binary-patching` | **PASS** — production release completed in 3 minutes 27 seconds, production pre-bundle marker/override checks passed, and the current Merlin NSIS installer was generated without binary patching. |
+| `pnpm verify:production-boundary` | **PASS** — production resolver tests, conflicting-feature rejection, unauthorized/incomplete build rejection, ASCII/UTF-16LE override-marker scans, unchanged pre-/post-bundle hash, harness positive controls, distinct binaries, and package/target harness exclusion all passed. |
+| `pnpm test:webview2` | **PASS** — 2 real WebView2 tests in 4.3 minutes: development-harness settings IPC, content-free rejected inputs, native restart, layout and hostile-document/accessibility coverage (4.1 minutes), and optimized-harness packaged settings/layout restart persistence (10.8 seconds). No production executable or production data directory was used. |
+| Complete tracked/untracked diff and `git diff --check` | **PASS** — all changed/new files were inspected; no whitespace errors, dependencies, lockfile changes, capability expansion, or later-milestone workflow appeared. Normal Git LF-to-CRLF working-copy warnings remain. |
+| Final pre-commit `pnpm format:check`, `pnpm typecheck`, `pnpm lint`, `git diff --check`, and `git diff --cached --check` | **PASS on 2026-11-23** — all commands succeeded after the acceptance/commit-authorization documentation update. |
+| Final intended-file secret scan | **PASS** — no dedicated repository scanner or installed scanning executable was present, so an explicit 26-file content scan checked private-key blocks, provider tokens, JWTs, and secret assignments. Only the five reviewed synthetic test-canary occurrences matched; no real secrets were found. |
+| Final amended-commit scope, parent, and clean-state verification | **PASS** — the amended commit contains exactly the approved 26 files, its parent is `2e55e7232c12b1e86a415f0e33d1a88a7dd1a1c7`, and both the working tree and index are clean. |
+
+All final verification outcomes above are local Windows 11 executions. Focused tests intentionally failed before V2 existed; the final complete suite supersedes those expected red-to-green development runs.
+
+### Produced artifacts
+
+| Artifact | Size | SHA-256 |
+| --- | ---: | --- |
+| `src-tauri/target/release/merlin.exe` | 12,564,480 bytes | `95621EEBEE860810A10F08325BF263881D1AA6CC8EDD309B3F164D31E6782247` |
+| `src-tauri/target/release/bundle/nsis/Merlin_0.1.0_x64-setup.exe` | 3,353,240 bytes | `59F8D6BAA6A4A77B3CF343B8923A0EE05A8EFBF63B8CB6E1EF4E7C8EBAA0549F` |
+| `src-tauri/target/test-harness/release/merlin-test-harness.exe` | 12,562,432 bytes | `C7A389C9FB5B1EC9918DD2A8A7437736DF934E2C151F40C1A6B258E525504229` |
+
+Updated structured production-boundary evidence remains under ignored `test-results/production-boundary/`; isolated WebView2 synthetic data and logs remain under ignored `test-results/webview2/`.
+
+### Corrections during Milestone 2
+
+- The newly appended V2 file was not initially re-embedded because Cargo did not track directory additions through the existing build script. Adding the narrow migration-directory rerun directive corrected the build-invalidation issue; migration compatibility tests then passed without changing V1 or the migration runner.
+- Initial Clippy review flagged one elidable test-support/service lifetime; it was removed and final default/harness lint passed.
+- The first complete native run correctly exposed the pre-existing layout test's hard-coded one-migration expectation. Only that schema-version expectation changed from one to two; targeted and complete layout/settings reruns passed.
+- Iterative corruption-case fixtures initially left an earlier case's invalid density in place while checking unrelated fields. The test now restores a valid baseline before each injection, preserving the intended per-field assertion without changing production recovery behavior.
+- No production architecture, approved setting, command name, security policy, or packaging safeguard was changed to resolve these implementation/test issues.
+
+### Milestone 2 limitations and unexecuted checks
+
+- Milestone 2 is implemented, locally verified, **user-accepted, and committed**. Final scope, hygiene, staged-diff, amended-commit, and clean-state checks passed; no push or Milestone 3 work is authorized.
+- Production packaging and binary boundary checks passed, but no new installed-production settings launch/persistence run, installer install/uninstall lifecycle, signing/SmartScreen check, upgrade test, separate-user/VM run, or OS-disconnected cold launch was performed. Settings IPC/persistence ran only in isolated development and optimized harnesses plus native tests.
+- Non-destructive recovery covers individual setting values. It does not recover an entirely corrupt SQLite file, missing settings table, migration failure, power loss, or real crash; those remain errors or previously documented durability limitations.
+- Density is persisted and exposed on the root for later product surfaces; no product controls consume it yet. Forced reduced motion supplements the existing proof-shell media query. No settings screen or picker exists.
+- Filesystem/recovery is not applicable to the new behavior because shared filesystem infrastructure did not change. Existing filesystem proofs passed in the full native suites.
+- Hosted CI was not run and no CI workflow was added. No manual screen-reader narration or changed physical display scale was performed. Existing Phase 0 and Milestone 1 limitations, including syntax-class provenance and offline cold-launch limits, remain unchanged.
 
 ## Phase 0 final verification commands and outcomes
 
@@ -337,8 +403,8 @@ These limitations do not invalidate the scoped Phase 0 result, but they must not
 
 ## Exact next task authorized
 
-**Create one commit containing only the reviewed and accepted Milestone 1 implementation, verification, packaging follow-up, tooling, and documentation changes. Report its hash, changed files, summary, clean working tree, and expected upstream count.** No further implementation is currently authorized. Stop after this commit. Do not push without separate explicit authorization.
+**Stop. Milestone 2 is committed; report the amended commit hash from Git history, changed files, verification results, parent, and final Git status.** No further implementation or commit is currently authorized. Do not push without separate explicit authorization.
 
-## Milestone 1 stop boundary
+## Milestone 2 stop boundary
 
-Milestone 2 settings/IPC work and every later milestone remain unauthorized. Do not add the V2 settings migration, settings repositories, generic settings IPC, application navigation, shell redesign, resources/projects, or other product workflows. A future implementation step requires a new explicit milestone authorization.
+Milestone 3 and every later milestone remain unauthorized. Do not add application navigation, a settings screen, theme picker, changed panel-layout defaults, resources/projects, Usage Journal controls, or other product workflows. The separately authorized Milestone 2 commit does not authorize any later implementation.

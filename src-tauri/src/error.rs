@@ -6,6 +6,7 @@ use thiserror::Error;
 #[serde(rename_all = "snake_case")]
 pub enum AppErrorCode {
     InvalidLayout,
+    InvalidSettings,
     Database,
     Io,
     PathUnavailable,

@@ -72,6 +72,27 @@ Verification gates:
 - **Accessibility:** navigation and common controls have accessible names, visible focus, keyboard operation, and reduced-motion behavior where animated.
 - **Windows build:** Windows 11 debug launch, explicit production-feature packaged build, and optimized test-harness build succeed. The production package must exclude the harness and the production build must reject simultaneous production/test-harness features.
 
+### Milestone 2 — Production settings foundation
+
+Milestone 1 established the accepted production identity, packaging guards, and native database lifecycle. Milestone 2 adds only the production settings foundation; it does not add navigation, a settings screen, a theme picker, later panel-layout changes, or other product workflows.
+
+Approved scope:
+- Preserve the V1 migration byte-for-byte and add an append-only V2 migration that reuses the existing `settings` table.
+- Seed exactly `app.theme_slug.v1` = `"merlin-dark"`, `app.density.v1` = `"default"`, and `app.accessibility.force_reduced_motion.v1` = `false` using conflict-safe insertion that never overwrites existing rows.
+- Add a focused native repository that reads and updates only individual allowlisted settings keys, plus a typed settings service.
+- Expose exactly `settings_get`, `settings_set_theme`, `settings_set_density`, and `settings_set_reduce_motion`; no generic key/value, arbitrary JSON, path, SQL, or secret-related commands.
+- Permit only theme slug `merlin-dark`, densities `default` and `compact`, and boolean forced-reduced-motion values. `false` follows the operating-system preference and `true` forces reduced motion; Merlin never disables an operating-system reduced-motion request.
+- Recover missing, malformed, wrong-type, or unsupported individual settings non-destructively with per-field safe defaults and `usedDefaults=true`. Reads never overwrite corrupt values; valid explicit updates may repair their own field. Actual database and migration failures remain errors.
+- Keep Merlin Dark as the synchronous initial theme, then load, validate, and apply persisted settings. Browser-only reads may use safe defaults; browser-only writes must report unavailable native persistence. No browser localStorage or alternative browser persistence is permitted.
+- Ensure all validation failures, including Serde/Tauri deserialization failures, are content-free.
+
+Acceptance:
+- A real V1 database created through Refinery upgrades to V2 with V1 schema, data, and migration history preserved; reopen is idempotent.
+- Approved settings persist across native-process restart, while rejected writes preserve the last valid value and corrupt reads do not rewrite stored values.
+- Existing layout persistence remains independent and unchanged, with no browser-storage fallback.
+- Validation errors, logs, and database writes do not reflect submitted secret-like values.
+- Existing native, frontend, browser, real WebView2, accessibility, production packaging, and test-harness regression gates pass.
+
 ## Phase 2 — Docs and Vault
 
 Build:
