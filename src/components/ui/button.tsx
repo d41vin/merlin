@@ -3,7 +3,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "cn"
 
 const buttonVariants = cva(
-  "merlin-control inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap font-medium select-none disabled:pointer-events-none disabled:opacity-60",
+  "merlin-control inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap font-medium select-none disabled:pointer-events-none",
   {
     variants: {
       variant: {
@@ -15,9 +15,9 @@ const buttonVariants = cva(
         link: "merlin-link-button",
       },
       size: {
-        default: "min-h-8 px-2.5",
-        sm: "min-h-7 px-2 text-xs",
-        icon: "size-8",
+        default: "merlin-control-default px-2.5",
+        sm: "merlin-control-small px-2",
+        icon: "merlin-control-icon",
       },
     },
     defaultVariants: {

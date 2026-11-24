@@ -1,0 +1,174 @@
+.merlin-page {
+  display: grid;
+  gap: var(--section-padding);
+  max-width: 1440px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: var(--section-padding);
+}
+
+.merlin-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--section-padding);
+}
+
+.merlin-surface {
+  min-width: 0;
+  padding: var(--panel-padding);
+  border: var(--border-width) solid var(--border-hairline);
+  border-radius: var(--radius-panel);
+  background: var(--bg-surface-1);
+}
+
+.merlin-surface-elevated {
+  background: var(--bg-surface-2);
+  box-shadow: inset 0 0 0 var(--border-width) var(--border-hairline);
+}
+
+.merlin-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--panel-padding);
+}
+
+.merlin-control {
+  min-height: var(--row-height);
+  padding: 6px 10px;
+  border: var(--border-width) solid var(--border-strong);
+  border-radius: var(--radius-control);
+  background: var(--bg-surface-2);
+  color: var(--text-primary);
+  letter-spacing: var(--tracking-control);
+}
+
+.merlin-control-accent {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+}
+
+.merlin-button-secondary {
+  background: var(--bg-surface-3);
+  color: var(--text-primary);
+}
+
+.merlin-button-ghost {
+  border-color: transparent;
+  background: transparent;
+  color: var(--text-primary);
+}
+
+.merlin-button-destructive {
+  border-color: var(--danger);
+  background: var(--danger);
+  color: var(--on-danger);
+}
+
+/* Enabled hover excludes pressed and selected states so composed states cannot leak variant fills. */
+.merlin-control:hover:not(:disabled):not(:active):not([data-selected="true"]) {
+  border-color: var(--border-strong);
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.merlin-control-accent:hover:not(:disabled):not(:active):not([data-selected="true"]) {
+  border-color: var(--accent-hover);
+  background: var(--accent-hover);
+  color: var(--on-accent);
+}
+
+.merlin-button-destructive:hover:not(:disabled):not(:active):not([data-selected="true"]) {
+  border-color: var(--danger);
+  background: var(--danger);
+  color: var(--on-danger);
+}
+
+.merlin-control[data-selected="true"]:not(:disabled) {
+  border-color: var(--border-strong);
+  border-left: var(--active-indicator-width) solid var(--accent);
+  background: var(--bg-selected);
+  color: var(--text-primary);
+}
+
+.merlin-control[data-selected="true"]:hover:not(:disabled):not(:active) {
+  border-color: var(--border-strong);
+  border-left: var(--active-indicator-width) solid var(--accent);
+  background: var(--bg-selected);
+  color: var(--text-primary);
+}
+
+/* Pressed supersedes selected visuals with a primary-text/active-surface/strong-boundary state. */
+.merlin-control:active:not(:disabled) {
+  border-color: var(--border-strong);
+  background: var(--bg-active);
+  color: var(--text-primary);
+}
+
+.merlin-control:disabled {
+  border-color: var(--border-hairline);
+  background: var(--bg-surface-2);
+  color: var(--text-disabled);
+}
+
+.merlin-control-small {
+  min-height: var(--control-height-small);
+  font-size: 12px;
+  letter-spacing: var(--tracking-label);
+}
+
+.merlin-control-icon {
+  width: var(--row-height);
+  min-width: var(--row-height);
+  height: var(--row-height);
+  min-height: var(--row-height);
+  padding: 0;
+}
+
+.merlin-textarea,
+.merlin-source {
+  width: 100%;
+  min-height: 180px;
+  resize: vertical;
+  padding: var(--panel-padding);
+  border: var(--border-width) solid var(--border-strong);
+  border-radius: var(--radius-control);
+  background: var(--bg-canvas);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.merlin-status {
+  min-height: 20px;
+  color: var(--text-secondary);
+}
+
+.merlin-status[data-kind="success"] {
+  color: var(--success);
+}
+
+.merlin-status[data-kind="warning"] {
+  color: var(--warning);
+}
+
+.merlin-status[data-kind="error"] {
+  color: var(--danger);
+}
+
+.merlin-link-button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-link);
+  text-decoration: underline;
+}
+
+.merlin-link-button:disabled {
+  border-color: transparent;
+  background: transparent;
+}

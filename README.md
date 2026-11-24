@@ -83,13 +83,17 @@ pnpm format:check
 pnpm typecheck
 pnpm lint
 pnpm test
+pnpm test:themes
 pnpm test:e2e
+pnpm generate:themes
 pnpm build
 pnpm tauri build --features custom-protocol,production --no-binary-patching
 pnpm build:test-harness
 pnpm verify:production-boundary
 pnpm test:webview2
 ```
+
+Edit `src/themes/*.tokens.json` rather than generated theme CSS, then run `pnpm generate:themes`. Ordinary `pnpm test:themes` and `pnpm build` validation is read-only and fails on manifest, completeness, contrast, generated-CSS, density, registry, or scoped production token-usage drift.
 
 Production packaging must explicitly select `custom-protocol,production`; do not use `--all-features`. The Tauri pre-bundle hook requires the production feature marker and rejects test override markers. Harness-enabled native commands use `scripts/native-harness.ps1` through the package scripts; direct harness compilation without that wrapper is rejected.
 

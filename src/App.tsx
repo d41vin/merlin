@@ -1,6 +1,7 @@
 import { FlaskConical, ShieldCheck } from "lucide-react"
 import { useEffect, useState } from "react"
 
+import { ControlStateProof } from "@/components/ControlStateProof"
 import { MarkdownProof } from "@/components/MarkdownProof"
 import { PanelProof } from "@/components/PanelProof"
 import { createLayoutStore } from "@/layout/store"
@@ -83,6 +84,7 @@ export function App() {
           {externalLink}
         </output>
       </section>
+      <ControlStateProof />
       <PanelProof store={store} />
       <MarkdownProof />
     </main>

@@ -93,6 +93,29 @@ Acceptance:
 - Validation errors, logs, and database writes do not reflect submitted secret-like values.
 - Existing native, frontend, browser, real WebView2, accessibility, production packaging, and test-harness regression gates pass.
 
+### Milestone 3 — Merlin Dark design system and CI foundation
+
+Milestone 3 establishes only the production design-system and verification foundation. It does not add application navigation, a settings screen, a theme picker, later panel-layout changes, or other product workflows.
+
+Approved scope:
+- Separate hue-named primitives, semantic tokens, and component styles. Every semantic color resolves through a primitive; Merlin Dark remains the only bundled theme.
+- Use a strict shared theme contract for manifest fields, exact semantic-token completeness, valid aliases, required contrast coverage, and synchronous fail-closed runtime application.
+- Generate committed theme CSS deterministically from manifests and compare generated output during local and build verification.
+- Validate all required text/surface pairings at 4.5:1 and meaningful control, selected, boundary, and focus indicators at 3:1. Coverage is based on actual permitted component states and adjacency, not a fixed pair count.
+- Keep decorative surface hairlines distinct from meaningful control boundaries. Status colors used as text require text contrast independently of graphical-indicator contrast.
+- Split global base, typography, density, common-component, and proof-only styles. Add a scoped static token-usage audit with documented exclusions and limitations.
+- Define default density at 32px and compact density at 28px for row/control roles, with fixed shared spacing and indicator tokens. Static HTML supplies default density before rendering; persisted compact density may still follow asynchronous native settings load.
+- Preserve the four Milestone 2 settings commands, all persistence/recovery behavior, and the prohibition on browser storage. Add no dependencies, migrations, settings keys, or IPC commands.
+- Add deterministic local theme/build gates and a GitHub Actions workflow for frontend/theme and native checks. Validate workflow-equivalent commands locally and record hosted execution as unverified while pushing remains unauthorized.
+
+Acceptance:
+- Complete strict theme contracts and generated CSS agree, runtime registry and discovered bundled manifests agree, and invalid themes cannot mutate the applied root.
+- All actual permitted rendered pairings pass, including hover, pressed, selected, disabled, status text, meaningful boundaries, and focus. Test success never results from omitting a failing pair.
+- Production CSS/TSX passes the scoped primitive, raw-color, Tailwind-color, and unregistered-token audit; positive and negative scanner tests pass.
+- Static default theme/density/color-scheme markers precede rendering, compact density applies after settings load, and computed Chromium/WebView2 behavior agrees.
+- Existing frontend, native, Chromium, WebView2, accessibility, production packaging, test-harness, settings, security, and production-boundary gates pass.
+- Workflow-equivalent steps pass locally; hosted CI is explicitly unverified until actually executed under separate authorization.
+
 ## Phase 2 — Docs and Vault
 
 Build:

@@ -1,7 +1,68 @@
 import AxeBuilder from "@axe-core/playwright"
-import { expect, test, type Page } from "@playwright/test"
+import { expect, test, type Locator, type Page } from "@playwright/test"
 
 import { getFixture, MARKDOWN_FIXTURES } from "../../src/markdown/fixtures"
+import { contrastRatio } from "../../src/themes/contract"
+
+async function computedThemeStyle(locator: Locator, pseudo?: string) {
+  return locator.evaluate((element, pseudoElement) => {
+    const style = getComputedStyle(element, pseudoElement)
+    return {
+      color: style.color,
+      backgroundColor: style.backgroundColor,
+      borderTopColor: style.borderTopColor,
+      borderTopWidth: style.borderTopWidth,
+      borderLeftColor: style.borderLeftColor,
+      borderLeftWidth: style.borderLeftWidth,
+      outlineColor: style.outlineColor,
+      outlineStyle: style.outlineStyle,
+      outlineWidth: style.outlineWidth,
+      outlineOffset: style.outlineOffset,
+      minHeight: style.minHeight,
+      opacity: style.opacity,
+      colorScheme: style.colorScheme,
+      fontFamily: style.fontFamily,
+    }
+  }, pseudo)
+}
+
+function cssColorToHex(color: string) {
+  const channels = color.match(/^rgba?\(\s*(\d+),\s*(\d+),\s*(\d+)(?:,\s*1)?\s*\)$/)
+  if (!channels) throw new Error(`Expected an opaque computed rgb() color, received ${color}`)
+  return `#${channels
+    .slice(1)
+    .map((channel) => Number(channel).toString(16).padStart(2, "0"))
+    .join("")}`
+}
+
+async function adjacentBackground(locator: Locator) {
+  return locator.evaluate((element) => {
+    let ancestor = element.parentElement
+    while (ancestor) {
+      const background = getComputedStyle(ancestor).backgroundColor
+      if (background !== "transparent" && background !== "rgba(0, 0, 0, 0)") return background
+      ancestor = ancestor.parentElement
+    }
+    return getComputedStyle(document.documentElement).backgroundColor
+  })
+}
+
+function expectContrast(foreground: string, background: string, minimum: number) {
+  expect(
+    contrastRatio(cssColorToHex(foreground), cssColorToHex(background)),
+  ).toBeGreaterThanOrEqual(minimum)
+}
+
+async function tabToElement(page: Page, target: Locator) {
+  await page.evaluate(() => {
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur()
+  })
+  for (let attempt = 0; attempt < 80; attempt += 1) {
+    await page.keyboard.press("Tab")
+    if (await target.evaluate((element) => element === document.activeElement)) return
+  }
+  throw new Error("Keyboard tab sequence did not reach the requested element")
+}
 
 async function layout(page: Page) {
   return JSON.parse((await page.getByTestId("layout-json").textContent()) ?? "{}") as {
@@ -201,4 +262,288 @@ test("Milkdown source fallback and hostile document security boundary", async ({
     .analyze()
   expect(accessibility.violations).toEqual([])
   expect(await page.evaluate(() => window.localStorage.length)).toBe(0)
+})
+
+test("Milkdown editor has a strong boundary and visible keyboard focus treatment", async ({
+  page,
+}) => {
+  await page.goto("/")
+  await waitForProofs(page)
+  const editor = page.getByTestId("milkdown-editor-host")
+  const content = editor.locator("[contenteditable='true']")
+  await expect(content).toBeVisible()
+
+  await tabToElement(page, content)
+  await expect(content).toBeFocused()
+  await expect.poll(() => editor.evaluate((element) => element.matches(":focus-within"))).toBe(true)
+
+  const style = await computedThemeStyle(editor)
+  expect(style).toMatchObject({
+    borderTopColor: "rgb(137, 148, 159)",
+    borderTopWidth: "1px",
+    outlineColor: "rgb(217, 119, 66)",
+    outlineStyle: "solid",
+    outlineWidth: "2px",
+    outlineOffset: "2px",
+  })
+  expectContrast(style.borderTopColor, style.backgroundColor, 3)
+  expectContrast(style.outlineColor, await adjacentBackground(editor), 3)
+  expect((await computedThemeStyle(content)).outlineStyle).toBe("none")
+})
+
+test("Merlin Dark computed component states and density remain semantic and accessible", async ({
+  page,
+}) => {
+  const consoleErrors: string[] = []
+  page.on("console", (message) => {
+    if (message.type() === "error") consoleErrors.push(message.text())
+  })
+  await page.addInitScript(() => {
+    const target = window as Window & { __MERLIN_OBSERVED_THEMES__?: string[] }
+    target.__MERLIN_OBSERVED_THEMES__ = []
+    const capture = () => {
+      const theme = document.documentElement?.dataset.theme
+      if (theme) target.__MERLIN_OBSERVED_THEMES__!.push(theme)
+    }
+    new MutationObserver(capture).observe(document, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+      subtree: true,
+    })
+    requestAnimationFrame(capture)
+  })
+  await page.goto("/")
+  await page.getByRole("button", { name: "Run current source proof" }).waitFor()
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "merlin-dark")
+  await expect(page.locator("html")).toHaveAttribute("data-density", "default")
+
+  await page.evaluate(() => {
+    const host = document.createElement("div")
+    host.id = "theme-status-fixture"
+    for (const kind of ["success", "warning", "error"] as const) {
+      const status = document.createElement("div")
+      status.className = "merlin-status"
+      status.dataset.kind = kind
+      status.dataset.testid = `theme-status-${kind}`
+      status.textContent = `Theme ${kind} status`
+      host.append(status)
+    }
+    document.body.append(host)
+  })
+
+  const generic = page.getByTestId("control-neutral")
+  const accent = page.getByTestId("control-accent")
+  const destructive = page.getByTestId("control-destructive")
+  const selected = page.getByTestId("control-neutral-selected")
+  const disabledAccent = page.getByTestId("control-accent-disabled")
+  const disabledDestructive = page.getByTestId("control-destructive-disabled")
+  await expect(page.getByTestId("control-state-proof").locator("[data-slot='button']")).toHaveCount(
+    8,
+  )
+
+  expect(await computedThemeStyle(generic)).toMatchObject({
+    minHeight: "32px",
+    color: "rgb(242, 244, 245)",
+    backgroundColor: "rgb(22, 25, 28)",
+    borderTopColor: "rgb(137, 148, 159)",
+  })
+  expect((await computedThemeStyle(page.locator("#markdown-fixture"))).colorScheme).toBe("dark")
+  expect((await computedThemeStyle(page.locator(".merlin-metadata").first())).fontFamily).toContain(
+    "Cascadia Mono",
+  )
+  expect((await computedThemeStyle(page.locator(".merlin-link-button").first())).color).toBe(
+    "rgb(155, 188, 232)",
+  )
+  expect(await computedThemeStyle(generic, "::selection")).toMatchObject({
+    color: "rgb(242, 244, 245)",
+    backgroundColor: "rgb(58, 66, 74)",
+  })
+  expect((await computedThemeStyle(page.getByTestId("theme-status-success"))).color).toBe(
+    "rgb(117, 189, 138)",
+  )
+  expect((await computedThemeStyle(page.getByTestId("theme-status-warning"))).color).toBe(
+    "rgb(215, 167, 88)",
+  )
+  expect((await computedThemeStyle(page.getByTestId("theme-status-error"))).color).toBe(
+    "rgb(216, 108, 108)",
+  )
+
+  const controlMatrix = [
+    {
+      variant: "neutral",
+      control: generic,
+      selectedControl: selected,
+      baseBackground: "rgb(22, 25, 28)",
+      baseForeground: "rgb(242, 244, 245)",
+      baseBorder: "rgb(137, 148, 159)",
+      hoverBackground: "rgb(42, 48, 54)",
+      hoverForeground: "rgb(242, 244, 245)",
+      hoverBorder: "rgb(137, 148, 159)",
+    },
+    {
+      variant: "accent",
+      control: accent,
+      selectedControl: page.getByTestId("control-accent-selected"),
+      baseBackground: "rgb(196, 98, 45)",
+      baseForeground: "rgb(8, 9, 10)",
+      baseBorder: "rgb(196, 98, 45)",
+      hoverBackground: "rgb(217, 119, 66)",
+      hoverForeground: "rgb(8, 9, 10)",
+      hoverBorder: "rgb(217, 119, 66)",
+    },
+    {
+      variant: "destructive",
+      control: destructive,
+      selectedControl: page.getByTestId("control-destructive-selected"),
+      baseBackground: "rgb(216, 108, 108)",
+      baseForeground: "rgb(8, 9, 10)",
+      baseBorder: "rgb(216, 108, 108)",
+      hoverBackground: "rgb(216, 108, 108)",
+      hoverForeground: "rgb(8, 9, 10)",
+      hoverBorder: "rgb(216, 108, 108)",
+    },
+  ]
+
+  for (const entry of controlMatrix) {
+    await page.mouse.move(0, 0)
+    const base = await computedThemeStyle(entry.control)
+    expect(base).toMatchObject({
+      color: entry.baseForeground,
+      backgroundColor: entry.baseBackground,
+      borderTopColor: entry.baseBorder,
+    })
+    expectContrast(base.color, base.backgroundColor, 4.5)
+    if (entry.variant === "neutral") {
+      expectContrast(base.borderTopColor, base.backgroundColor, 3)
+    } else {
+      expectContrast(base.backgroundColor, await adjacentBackground(entry.control), 3)
+    }
+
+    await entry.control.hover()
+    await expect
+      .poll(() => entry.control.evaluate((element) => element.matches(":hover")))
+      .toBe(true)
+    const hovered = await computedThemeStyle(entry.control)
+    expect(hovered).toMatchObject({
+      color: entry.hoverForeground,
+      backgroundColor: entry.hoverBackground,
+      borderTopColor: entry.hoverBorder,
+    })
+    expectContrast(hovered.color, hovered.backgroundColor, 4.5)
+
+    await page.mouse.down()
+    await expect
+      .poll(() => entry.control.evaluate((element) => element.matches(":active")))
+      .toBe(true)
+    await expect
+      .poll(async () => (await computedThemeStyle(entry.control)).backgroundColor)
+      .toBe("rgb(58, 66, 74)")
+    const pressed = await computedThemeStyle(entry.control)
+    expect(pressed).toMatchObject({
+      color: "rgb(242, 244, 245)",
+      backgroundColor: "rgb(58, 66, 74)",
+      borderTopColor: "rgb(137, 148, 159)",
+    })
+    expectContrast(pressed.color, pressed.backgroundColor, 4.5)
+    expectContrast(pressed.borderTopColor, pressed.backgroundColor, 3)
+    await page.mouse.up()
+
+    await page.mouse.move(0, 0)
+    const selectedBase = await computedThemeStyle(entry.selectedControl)
+    expect(selectedBase).toMatchObject({
+      color: "rgb(242, 244, 245)",
+      backgroundColor: "rgb(42, 48, 54)",
+      borderLeftColor: "rgb(196, 98, 45)",
+      borderLeftWidth: "2px",
+    })
+    expectContrast(selectedBase.color, selectedBase.backgroundColor, 4.5)
+    expectContrast(selectedBase.borderLeftColor, selectedBase.backgroundColor, 3)
+
+    await entry.selectedControl.hover()
+    await expect
+      .poll(() => entry.selectedControl.evaluate((element) => element.matches(":hover")))
+      .toBe(true)
+    const selectedHovered = await computedThemeStyle(entry.selectedControl)
+    expect(selectedHovered).toMatchObject({
+      color: "rgb(242, 244, 245)",
+      backgroundColor: "rgb(42, 48, 54)",
+      borderLeftColor: "rgb(196, 98, 45)",
+      borderLeftWidth: "2px",
+    })
+    expectContrast(selectedHovered.color, selectedHovered.backgroundColor, 4.5)
+    expectContrast(selectedHovered.borderLeftColor, selectedHovered.backgroundColor, 3)
+
+    await page.mouse.down()
+    await expect
+      .poll(() => entry.selectedControl.evaluate((element) => element.matches(":active")))
+      .toBe(true)
+    await expect
+      .poll(async () => (await computedThemeStyle(entry.selectedControl)).backgroundColor)
+      .toBe("rgb(58, 66, 74)")
+    const selectedPressed = await computedThemeStyle(entry.selectedControl)
+    expect(selectedPressed).toMatchObject({
+      color: "rgb(242, 244, 245)",
+      backgroundColor: "rgb(58, 66, 74)",
+      borderTopColor: "rgb(137, 148, 159)",
+      borderLeftColor: "rgb(137, 148, 159)",
+    })
+    expectContrast(selectedPressed.color, selectedPressed.backgroundColor, 4.5)
+    expectContrast(selectedPressed.borderLeftColor, selectedPressed.backgroundColor, 3)
+    await page.mouse.up()
+  }
+
+  await page.mouse.move(0, 0)
+  await tabToElement(page, selected)
+  await expect(selected).toBeFocused()
+  await expect
+    .poll(() => selected.evaluate((element) => element.matches(":focus-visible")))
+    .toBe(true)
+  const focused = await computedThemeStyle(selected)
+  expect(focused).toMatchObject({
+    outlineColor: "rgb(217, 119, 66)",
+    outlineStyle: "solid",
+    outlineWidth: "2px",
+    outlineOffset: "2px",
+  })
+  expectContrast(focused.outlineColor, await adjacentBackground(selected), 3)
+
+  for (const disabled of [disabledAccent, disabledDestructive]) {
+    const disabledStyle = await computedThemeStyle(disabled)
+    expect(disabledStyle).toMatchObject({
+      color: "rgb(137, 148, 159)",
+      backgroundColor: "rgb(22, 25, 28)",
+      borderTopColor: "rgb(58, 66, 74)",
+      opacity: "1",
+    })
+    expectContrast(disabledStyle.color, disabledStyle.backgroundColor, 4.5)
+  }
+
+  const handle = page.getByRole("separator", { name: "Resize Docs and Todos" })
+  expect((await computedThemeStyle(handle, "::after")).borderLeftColor).toBe("rgb(137, 148, 159)")
+
+  await page.evaluate(() => {
+    document.documentElement.dataset.density = "compact"
+  })
+  await expect.poll(async () => (await computedThemeStyle(generic)).minHeight).toBe("28px")
+  await expect
+    .poll(
+      async () => (await computedThemeStyle(page.locator(".merlin-fixture-row").first())).minHeight,
+    )
+    .toBe("28px")
+  await page.evaluate(() => {
+    document.documentElement.dataset.density = "default"
+  })
+  await expect.poll(async () => (await computedThemeStyle(generic)).minHeight).toBe("32px")
+
+  const observedThemes = await page.evaluate(
+    () => (window as Window & { __MERLIN_OBSERVED_THEMES__?: string[] }).__MERLIN_OBSERVED_THEMES__,
+  )
+  expect(observedThemes?.length).toBeGreaterThan(0)
+  expect([...new Set(observedThemes)]).toEqual(["merlin-dark"])
+
+  const accessibility = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+    .analyze()
+  expect(accessibility.violations).toEqual([])
+  expect(consoleErrors).toEqual([])
 })

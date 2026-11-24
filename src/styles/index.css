@@ -3,4 +3,8 @@
 @import "tailwindcss";
 @import "shadcn/tailwind.css";
 @import "../themes/merlin-dark.css";
-@import "../themes/preflight.css";
+@import "./base.css";
+@import "./typography.css";
+@import "./density.css";
+@import "./components.css";
+@import "./preflight.css";

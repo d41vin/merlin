@@ -1,0 +1,19 @@
+:root[data-density="default"] {
+  --row-height: 32px;
+  --control-height-small: 28px;
+  --panel-padding: 8px;
+  --section-padding: 16px;
+  --table-header-height: 28px;
+  --sidebar-item-height: 28px;
+  --active-indicator-width: 2px;
+}
+
+:root[data-density="compact"] {
+  --row-height: 28px;
+  --control-height-small: 28px;
+  --panel-padding: 8px;
+  --section-padding: 16px;
+  --table-header-height: 28px;
+  --sidebar-item-height: 28px;
+  --active-indicator-width: 2px;
+}

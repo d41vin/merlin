@@ -1,0 +1,43 @@
+html,
+body,
+#root {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  letter-spacing: var(--tracking-body);
+}
+
+.merlin-page-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: var(--tracking-page-title);
+}
+
+.merlin-section-title {
+  margin: 0 0 8px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: var(--tracking-section);
+}
+
+.merlin-label {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  letter-spacing: var(--tracking-label);
+}
+
+.merlin-metadata {
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: var(--tracking-metadata);
+}
+
+.merlin-reading {
+  max-width: 70ch;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.65;
+}

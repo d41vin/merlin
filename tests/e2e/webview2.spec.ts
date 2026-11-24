@@ -103,6 +103,9 @@ test("real WebView2 interactions and SQLite persistence survive a native process
     await expect(session.page.locator("html")).toHaveAttribute("data-theme", "merlin-dark")
     await expect(session.page.locator("html")).toHaveAttribute("data-density", "default")
     await expect(session.page.locator("html")).not.toHaveAttribute("data-force-reduced-motion")
+    await expect(session.page.locator("html")).toHaveCSS("color-scheme", "dark")
+    await expect(session.page.locator(".merlin-control").first()).toHaveCSS("min-height", "32px")
+    await expect(session.page.locator("#markdown-fixture")).toHaveCSS("color-scheme", "dark")
 
     const savedTheme = await invokeNative<ApplicationSettings>(session.page, "settings_set_theme", {
       theme: "merlin-dark",
@@ -215,6 +218,9 @@ test("real WebView2 interactions and SQLite persistence survive a native process
     await expect(session.page.locator("html")).toHaveAttribute("data-density", "compact")
     await expect(session.page.locator("html")).toHaveAttribute("data-force-reduced-motion", "true")
     await expect(session.page.locator("html")).toHaveAttribute("data-theme", "merlin-dark")
+    await expect(session.page.locator("html")).toHaveCSS("color-scheme", "dark")
+    await expect(session.page.locator(".merlin-control").first()).toHaveCSS("min-height", "28px")
+    await expect(session.page.locator("#markdown-fixture")).toHaveCSS("color-scheme", "dark")
     await expect(session.page.getByTestId("panel-docs")).toHaveAttribute("data-collapsed")
 
     const restartedHandle = session.page.getByRole("separator", {
@@ -322,8 +328,12 @@ test("optimized harness launches packaged assets and typed SQLite IPC", async ()
       session.page.getByTestId("milkdown-editor-host").locator("[contenteditable='true']"),
     ).toHaveAccessibleName("Markdown rich editor")
     expect(await session.page.evaluate(() => window.localStorage.length)).toBe(0)
+    await expect(session.page.locator("html")).toHaveAttribute("data-theme", "merlin-dark")
     await expect(session.page.locator("html")).toHaveAttribute("data-density", "default")
     await expect(session.page.locator("html")).not.toHaveAttribute("data-force-reduced-motion")
+    await expect(session.page.locator("html")).toHaveCSS("color-scheme", "dark")
+    await expect(session.page.locator(".merlin-control").first()).toHaveCSS("min-height", "32px")
+    await expect(session.page.locator("#markdown-fixture")).toHaveCSS("color-scheme", "dark")
     const nativeHairline = await session.page
       .locator(".merlin-surface")
       .first()
@@ -366,6 +376,9 @@ test("optimized harness launches packaged assets and typed SQLite IPC", async ()
     expect(settings.usedDefaults).toBe(false)
     await expect(session.page.locator("html")).toHaveAttribute("data-density", "compact")
     await expect(session.page.locator("html")).toHaveAttribute("data-force-reduced-motion", "true")
+    await expect(session.page.locator("html")).toHaveAttribute("data-theme", "merlin-dark")
+    await expect(session.page.locator("html")).toHaveCSS("color-scheme", "dark")
+    await expect(session.page.locator(".merlin-control").first()).toHaveCSS("min-height", "28px")
     expect(await session.page.evaluate(() => window.localStorage.length)).toBe(0)
     expect(consoleErrors).toEqual([])
   } finally {

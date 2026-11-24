@@ -1,0 +1,112 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend-theme:
+    runs-on: windows-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: 12.15.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24.22.1
+          cache: pnpm
+
+      - name: Install frozen frontend dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check frontend formatting
+        run: pnpm exec prettier --check .
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint frontend
+        run: pnpm lint:frontend
+
+      - name: Validate themes and production token usage
+        run: pnpm test:themes
+
+      - name: Run frontend unit and contract tests
+        run: pnpm test:frontend
+
+      - name: Install Chromium
+        run: pnpm exec playwright install chromium
+
+      - name: Run Chromium integration tests
+        run: pnpm test:e2e
+
+      - name: Build frontend
+        run: pnpm build
+
+  native:
+    runs-on: windows-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: 12.15.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24.22.1
+          cache: pnpm
+
+      - name: Install frozen frontend dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Restore Cargo and repository-local Rust cache
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            .tools/cargo/registry
+            .tools/cargo/git
+            .tools/rustup
+          key: merlin-native-${{ hashFiles('src-tauri/Cargo.lock', 'src-tauri/Cargo.toml', 'rust-toolchain.toml') }}
+          restore-keys: merlin-native-
+
+      - name: Set up the exact repository-local Rust toolchain
+        run: pnpm setup:rust
+        shell: pwsh
+
+      - name: Check native formatting
+        run: pnpm format:rust
+        shell: pwsh
+
+      - name: Lint native default features
+        run: pnpm lint:rust
+        shell: pwsh
+
+      - name: Lint native harness features
+        run: pnpm lint:rust:harness
+        shell: pwsh
+
+      - name: Test native default features
+        run: pnpm test:rust
+        shell: pwsh
+
+      - name: Test native harness features
+        run: pnpm test:rust:harness
+        shell: pwsh

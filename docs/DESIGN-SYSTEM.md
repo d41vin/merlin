@@ -84,10 +84,18 @@ The theme contract includes semantic roles for:
 - Success, warning, and danger
 - Destructive foreground/background
 
+State implementation rules:
+- Meaningful control and resize-handle boundaries use `--border-strong` or another validated indicator. `--border-hairline` may define decorative surface/group separation, but must not be the sole visual means of identifying an interactive control or selected state.
+- Pressed controls use a validated foreground/background/border combination; in Merlin Dark this is primary text and a strong border on `--bg-active`. Pressing temporarily supersedes the selected surface and Rust edge so no unvalidated Rust/active-surface adjacency is introduced; selection returns on release.
+- Selected controls use primary text and a 2px `--active-indicator-width` Rust edge on `--bg-selected`. Selected hover retains that neutral selected state for neutral, accent, and destructive variants; selected pressed follows the pressed rule above. Browser tests exercise the actual React `Button` variants and these composed states.
+- Interactive editors use `--border-strong`, not the decorative hairline reserved for surface separation.
+- Disabled filled variants return to a neutral surface with `--text-disabled`; do not reduce their opacity again and bypass the declared text pairing.
+- Success, warning, and danger may serve as status text or graphical indicators. Text usage requires 4.5:1 independently of graphical usage at 3:1.
+
 Focus:
 - 2px focus ring.
 - 2px offset.
-- Focus-visible only.
+- Focus-visible only. A composite contenteditable may instead expose the equivalent 2px/2px-offset ring on its `:focus-within` container while suppressing only the inner duplicate outline.
 - Use `--border-focus` and ensure contrast against surrounding surfaces.
 - Provide a fallback treatment if accent color cannot meet the UI contrast requirement.
 
@@ -101,6 +109,13 @@ Three layers:
 Components must not reference hue primitives directly and must not hardcode theme-specific colors, radii, font families, shadows, or border widths.
 
 Themes are self-contained. Every theme defines the complete semantic contract. No inheritance or implicit fallback from Merlin Dark.
+
+Production organization:
+- `src/themes/contract.ts` owns the required semantic names, required contrast coverage, strict manifest validation, and density contract values.
+- Each `src/themes/*.tokens.json` manifest is the source of truth for one bundled theme. Semantic colors reference hue primitives directly.
+- Committed theme CSS is generated deterministically with `pnpm generate:themes`; edit manifests rather than generated CSS.
+- `src/styles/base.css`, `typography.css`, `density.css`, and `components.css` own global roles and common component styles. Proof-only styling is isolated in `src/styles/preflight.css`.
+- `scripts/validate-token-usage.mjs` performs the scoped production-source token audit. It is a lexical guardrail, not a CSS/TSX parser or a substitute for computed-browser and contrast tests.
 
 ## 9. Theme mode and runtime
 
@@ -117,13 +132,17 @@ Themes are applied through a root `data-theme` attribute. The selected theme slu
 
 V1 ships Merlin Dark only. Do not build a theme picker or external theme installer yet. The contract is shaped so future bundled themes can be added. External theme loading is not part of v1.
 
+Static HTML supplies Merlin Dark, dark color-scheme metadata, and default density before rendering. Validated defaults are applied synchronously before the first React render. Persisted compact density may then be applied after native settings load; that density transition is accepted. Theme selection remains constrained to Merlin Dark through the SQLite settings contract. No browser persistence or blocking native startup IPC is used.
+
 ## 10. Contrast policy
 
 - Normal text: minimum 4.5:1 against every permitted surface.
 - UI components and meaningful graphical indicators: minimum 3:1 against adjacent surfaces.
 - Text on filled controls: minimum 4.5:1 between foreground and fill.
 - Do not use the Rust accent as text where it fails.
-- Each theme declares permitted token pairings. The CI validator checks every declared pairing.
+- The shared contract declares mandatory pairings required by common component states. Every bundled theme must include every mandatory pairing plus any additional permitted pairings; omitting a failing required pair is itself a validation failure.
+- The CI validator checks every required and declared pairing. Components must not introduce unlisted combinations.
+- Pair declarations model actual adjacency. In particular, a 2px-offset focus outline is evaluated against its surrounding surface, not blindly against every control fill separated by the offset.
 - Theme validation failure must fail the build.
 
 See `design-tokens.md` for the token contract and validation requirements.
