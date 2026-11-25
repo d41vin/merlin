@@ -72,6 +72,19 @@ Verification gates:
 - **Accessibility:** navigation and common controls have accessible names, visible focus, keyboard operation, and reduced-motion behavior where animated.
 - **Windows build:** Windows 11 debug launch, explicit production-feature packaged build, and optimized test-harness build succeed. The production package must exclude the harness and the production build must reject simultaneous production/test-harness features.
 
+### Milestone 1 — Production identity and database lifecycle
+
+Milestone 1 established the accepted production identity, packaging guards, and native database lifecycle. It did not add navigation, product screens, settings, or the design system.
+
+Delivered scope:
+- Production Tauri identity `com.merlin.desktop`, window title Merlin, executable `merlin.exe`, and database `<app_data_dir>/merlin.sqlite3`.
+- Production-only packaging features and a separately compiled, optimized test harness; normal distribution cannot use the test database override.
+- Canonicalized, confined test-database resolution behind explicit harness markers and environment gates.
+- Native database lifecycle with the V1 migration and migration history preserved.
+- Regression coverage for production-boundary exclusion, conflicting features, and legacy preflight database preservation.
+
+Milestone 1 was accepted and committed as `2e55e7232c12b1e86a415f0e33d1a88a7dd1a1c7`.
+
 ### Milestone 2 — Production settings foundation
 
 Milestone 1 established the accepted production identity, packaging guards, and native database lifecycle. Milestone 2 adds only the production settings foundation; it does not add navigation, a settings screen, a theme picker, later panel-layout changes, or other product workflows.
@@ -116,7 +129,42 @@ Acceptance:
 - Existing frontend, native, Chromium, WebView2, accessibility, production packaging, test-harness, settings, security, and production-boundary gates pass.
 - Workflow-equivalent steps pass locally; hosted CI is explicitly unverified until actually executed under separate authorization.
 
+### Milestone 4 — Application shell, navigation, common controls, and Phase 1 closure (required; not authorized)
+
+Phase 1 is not complete. The Phase 1 build list requires a Tauri/React shell, Overview/Projects/Resources navigation, and common controls and layout primitives. Milestones 1–3 delivered identity, settings, and the design system, but the normal React surface is still the Phase 0 technical-preflight proof. Milestone 4 is the remaining Phase 1 work, not new product scope.
+
+Scope for approval:
+- Replace the Phase 0 proof surface with the product shell. The normal application must not describe itself as a technical preflight or say that it is not a product screen.
+- Add a persistent left navigation for exactly Overview, Projects, Resources. Default width 240px; resizable within 200–320px using the approved UI SDK resizable primitive rather than a second layout implementation. Items are 28px high with a 2px active indicator and clear hover, focus, and selected states.
+- Use keyboard-operable destinations with accessible names, visible focus, and an active state exposed to assistive technology. Preserve focus when destinations change and respect reduced-motion preferences.
+- Add the shell and common-control foundations owned by shadcn/Base UI: application frame, page and section headers, content regions, status/empty/error presentation, and the standard controls listed in `docs/UI-STACK.md`. UI SDK and shadcn/Base UI must not own the same interaction primitive.
+- Show an explicit unavailable/not-yet-implemented state for Overview, Projects, and Resources content. Do not fabricate project records, resources, activity, metrics, or usage data to fill the shell. Their product workflows remain Phase 3–5.
+- Close the remaining Phase 1 verification gaps: navigation-state and accessibility tests; a proven rejection of secret-like settings values and of secret-like values on any log-path surface, or a documented not-applicable finding if no log-path surface exists; and re-verification of the existing production migrations and settings repository through typed commands. Add no product-entity repositories in this milestone.
+- Preserve the four Milestone 2 settings commands and recovery behavior, the Merlin Dark theme contract, SQLite layout persistence, and the prohibition on browser storage. Add no dependency, migration, settings key, or IPC command unless separately approved.
+
+Acceptance:
+- The application launches into the product shell on Windows 11 and data survives restart.
+- Overview, Projects, and Resources are reachable by keyboard and pointer; focus is visible, names are accessible, and the active destination is announced.
+- Sidebar width defaults to 240px and stays within 200–320px; navigation uses the documented item height and active indicator; no arbitrary destination rearrangement is introduced.
+- Components consume semantic tokens only, and the normal product surface contains no proof-only labeling or fabricated data.
+- Phase 1 acceptance in this document is met, including local and CI contrast validation, and all existing settings, theme, security, packaging, and test-harness gates remain green.
+- Hosted CI passes for the milestone commit.
+
+Verification gates:
+- **Unit:** navigation state, active-destination semantics, sidebar bounds, and shell state transitions.
+- **Integration:** existing production migrations and settings repositories through typed Tauri commands; SQLite-backed layout save/restore; no browser storage.
+- **Filesystem/recovery:** not applicable to new shell behavior; rerun the Phase 0 atomic-write proof if shared filesystem infrastructure changes.
+- **Security:** settings and any log-path surface reject secret-like values; no document, resource, or remote content is rendered or fetched by the shell; renderer capabilities remain minimal.
+- **Accessibility:** keyboard navigation, visible focus, accessible names, active-state announcement, reduced-motion behavior, and automated accessibility checks.
+- **Windows build:** Windows 11 debug launch and production-feature packaged build succeed with the harness excluded.
+
+Milestone 4 is **not authorized**. Do not begin it until the user explicitly approves this scope.
+
 ## Phase 2 — Docs and Vault
+
+**Planning status (2026-11-25):** Proposed only; not authorized. The detailed, sequenced milestone plan is in `docs/PHASE-2-PLAN.md`. It requires Phase 1 Milestone 4 to pass first. The summary below remains the authoritative Phase 2 outcome contract; the detailed plan may not weaken it.
+
+Phase 2 includes the minimum stable project identity, optional repository connection, and Docs-root registration that Docs requires. Phase 3 extends those records into the full Projects area; it must not create a second project identity. The rest of the Phase 2 build list below remains unchanged.
 
 Build:
 - Project registration and repository connection.

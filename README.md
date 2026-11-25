@@ -50,6 +50,7 @@ merlin/
     ├── SECURITY.md
     ├── UI-STACK.md
     ├── IMPLEMENTATION-PLAN.md
+    ├── PHASE-2-PLAN.md
     └── DECISIONS.md
 ```
 
@@ -113,6 +114,7 @@ The scripts are backed by the configured Phase 0 tools. `BUILD-STATUS.md` record
 - [Security](docs/SECURITY.md)
 - [UI stack and library integration](docs/UI-STACK.md)
 - [Implementation plan](docs/IMPLEMENTATION-PLAN.md)
+- [Phase 2 Docs and Vault plan](docs/PHASE-2-PLAN.md) (proposed, not authorized)
 - [Decision log](docs/DECISIONS.md)
 
 ## Product boundaries
