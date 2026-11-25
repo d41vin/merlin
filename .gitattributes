@@ -1,2 +1,3 @@
+* text=auto eol=lf
 /src/themes/*.css text eol=lf
 /src/styles/density.css text eol=lf
