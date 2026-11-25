@@ -3,9 +3,10 @@
 Status: **Proposed; not authorized.** This document sequences Phase 2 work. It does not
 authorize implementation, dependency changes, migrations, or product code.
 
-Date: 2026-11-25
+Date: 2026-11-26
 
 Authoritative requirements:
+
 - `docs/PRD.md` §9
 - `docs/DOCS-AND-VAULT.md`
 - `docs/DATA-MODEL.md` §14
@@ -18,11 +19,18 @@ Authoritative requirements:
 
 Phase 2 must not begin until all of the following are true:
 
-1. Phase 1 Milestone 4 — Application shell and navigation has passed its acceptance gates.
-   The current React surface is still the Phase 0 proof shell and has no product navigation.
-2. Hosted CI is green for the current `main`. It is green for `d1a4864` (both jobs).
+1. Phase 1 Milestone 4 — Application shell, navigation, common controls, and Phase 1 closure —
+   has passed its acceptance gates. The plan is in `docs/PHASE-1-M4-PLAN.md`. Only Checkpoint 1
+   is authorized; the product shell, navigation, sidebar, minimal controls, and Phase 1 closure
+   are not implemented yet.
+2. Hosted CI is green for the pushed `main` commit. It is green for `d1a4864` (both jobs); after the
+   M4 milestone commit is pushed, hosted CI must be green for that commit as well. Hosted CI runs
+   frontend, Chromium, and native checks but does not run real WebView2, NSIS packaging, or the
+   production-boundary gates.
 3. The user has approved this milestone sequence and the scope boundary in §2.
 4. Any open decisions listed in §6 that block the first milestone have been resolved.
+5. M4-D5 **Option B** has been approved and recorded (2026-11-26), so P2-M1 inherits a stable
+   test/build boundary once the remaining M4 checkpoints pass.
 
 ## 2. Scope boundary
 
@@ -78,19 +86,19 @@ Non-negotiable invariants:
 
 ## 4. Milestone sequence
 
-| # | Milestone | User-visible outcome | Depends on |
-|---|---|---|---|
-| P2-M1 | Project identity, registration, and Project Store foundation | Register a project, connect an optional repository, confirm/create/skip a Docs root, and see the Docs entry point | Phase 1 M4; approved scope |
-| P2-M2 | Docs manifest and read-only source browser | Browse the confirmed Docs tree and open Markdown read-only with a sanitized preview or source fallback | P2-M1 |
-| P2-M3 | Backup enrollment and baseline | A verified Project Store backup and a last-synced baseline exist; backup state is visible | P2-M2 |
-| P2-M4 | Editor, autosave, revisions, and offline active-copy editing | Edit the repository copy, or the backup when the repository is unavailable; receive revisions and save-state feedback | P2-M3 |
-| P2-M5 | Watcher, reconciliation detection, and Git context | External changes, missing files, and branch/HEAD changes become visible without automatic propagation | P2-M4 |
-| P2-M6 | Three-way propagation and conflict records | Non-conflicting changes propagate safely; divergent changes create conflicts and never overwrite | P2-M5 |
-| P2-M7 | Conflict resolution and recovery surface | Resolve conflicts explicitly with both versions accessible; recovery-required operations are actionable | P2-M6 |
-| P2-M8 | Deletion, tombstones, trash, branch and reconnect safety | Delete/restore safely; branch switches and reconnect do not resurrect or silently delete files | P2-M7 |
-| P2-M9 | Attachments and shared/private assets | Reference public `docs/assets/` files and store private attachments with encrypted managed copies | P2-M8 |
-| P2-M10 | Sensitive-data detection, redaction, quarantine, and purge | Unredacted secrets are refused; exposed managed attachments can be quarantined and purged everywhere Merlin controls | P2-M9 |
-| P2-M11 | Fault injection, restart, accessibility, and Phase 2 acceptance | Phase 2 passes its complete recovery, security, accessibility, Windows, and packaging gates | P2-M1–M10 |
+| #      | Milestone                                                       | User-visible outcome                                                                                                  | Depends on                 |
+| ------ | --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | -------------------------- |
+| P2-M1  | Project identity, registration, and Project Store foundation    | Register a project, connect an optional repository, confirm/create/skip a Docs root, and see the Docs entry point     | Phase 1 M4; approved scope |
+| P2-M2  | Docs manifest and read-only source browser                      | Browse the confirmed Docs tree and open Markdown read-only with a sanitized preview or source fallback                | P2-M1                      |
+| P2-M3  | Backup enrollment and baseline                                  | A verified Project Store backup and a last-synced baseline exist; backup state is visible                             | P2-M2                      |
+| P2-M4  | Editor, autosave, revisions, and offline active-copy editing    | Edit the repository copy, or the backup when the repository is unavailable; receive revisions and save-state feedback | P2-M3                      |
+| P2-M5  | Watcher, reconciliation detection, and Git context              | External changes, missing files, and branch/HEAD changes become visible without automatic propagation                 | P2-M4                      |
+| P2-M6  | Three-way propagation and conflict records                      | Non-conflicting changes propagate safely; divergent changes create conflicts and never overwrite                      | P2-M5                      |
+| P2-M7  | Conflict resolution and recovery surface                        | Resolve conflicts explicitly with both versions accessible; recovery-required operations are actionable               | P2-M6                      |
+| P2-M8  | Deletion, tombstones, trash, branch and reconnect safety        | Delete/restore safely; branch switches and reconnect do not resurrect or silently delete files                        | P2-M7                      |
+| P2-M9  | Attachments and shared/private assets                           | Reference public `docs/assets/` files and store private attachments with encrypted managed copies                     | P2-M8                      |
+| P2-M10 | Sensitive-data detection, redaction, quarantine, and purge      | Unredacted secrets are refused; exposed managed attachments can be quarantined and purged everywhere Merlin controls  | P2-M9                      |
+| P2-M11 | Fault injection, restart, accessibility, and Phase 2 acceptance | Phase 2 passes its complete recovery, security, accessibility, Windows, and packaging gates                           | P2-M1–M10                  |
 
 Eleven milestones are intentional. Each can be implemented, tested, and committed without
 requiring the next milestone. If a milestone proves too broad during implementation, split it at
@@ -121,7 +129,8 @@ and a Docs entry point. No document is copied, edited, or synchronized yet.
   `recovery/`, and `exports/`. Create only the directories required by the current operation;
   never place them inside the repository.
 - Add a minimal Projects destination limited to project creation/selection and Docs
-  registration status. Full project lifecycle/workbench UI remains Phase 3.
+  registration status. Reuse the M4 shell, navigation, and minimal controls; do not add a settings
+  screen, theme picker, or new settings key. Full project lifecycle/workbench UI remains Phase 3.
 - Re-registration must offer an explicit reconnect to the existing project when the same local
   path or remote identity is encountered. Do not silently create duplicates.
 
@@ -135,13 +144,16 @@ and a Docs entry point. No document is copied, edited, or synchronized yet.
 
 **Dependencies**
 
-- Phase 1 M4 product shell and navigation.
-- Approved decision that Phase 2 may introduce the minimal project/repository records that Phase 3
-  will extend.
+- Phase 1 M4 product shell, navigation, and minimal common controls (Button, Input, Textarea,
+  Label, Dialog).
+- The M4 decision that sidebar width is session-only; P2-M1 must not assume or add sidebar-width
+  persistence.
+- Explicit approval of the minimal Phase 2 project/repository boundary (outstanding; see §6.2).
 
 **Expected data-model and migration changes**
 
 Append-only V3 migration (expected):
+
 - `projects`: `id`, `name`, `description`, `status`, `created_at`, `updated_at`.
 - `repository_connections`: `id`, `project_id`, canonical local path, nullable remote identity,
   nullable default branch, nullable last observed HEAD/branch, connection status,
@@ -162,7 +174,8 @@ Append-only V3 migration (expected):
 **Frontend responsibilities**
 
 - Minimal project registration and selection surface; Docs-root confirmation dialog; create/
-  choose/skip actions with clear consequences.
+  choose/skip actions with clear consequences. Reuse the M4 controls (Button, Input, Textarea,
+  Label, Dialog) rather than adding a second control stack.
 - Repository-unavailable and Docs-root-missing states.
 - Keyboard operation, visible focus, accessible names, and dialog focus management.
 - No fabricated activity or placeholder data presented as real.
@@ -184,7 +197,8 @@ Append-only V3 migration (expected):
   rejection.
 - No silent folder creation; one primary Docs root; create/choose/skip paths.
 - Project Store directory creation idempotence and cross-project isolation.
-- No browser storage, no secret-like values in errors, keyboard/dialog accessibility.
+- No browser storage, no secret-like values in errors, keyboard/dialog accessibility, and no
+  sidebar-width persistence assumption.
 
 **Acceptance criteria**
 
@@ -241,6 +255,7 @@ constructs open in source mode. No file is written.
 **Expected data-model and migration changes**
 
 Append-only V4 migration (expected):
+
 - `docs_files`/manifest table with project, root, relative path, kind, size, mtime, raw hash,
   encoding, feature flags, last seen timestamp, and status.
 - Unique identity per project/root/path; indexes for tree and hash lookups.
@@ -329,6 +344,7 @@ reconciliation. No editing or propagation occurs yet.
 **Expected data-model and migration changes**
 
 Append-only V5 migration (expected):
+
 - `last_synced_baselines` keyed by project/file with repository and backup hashes, context,
   state, and timestamps.
 - Backup-side manifest metadata or a side discriminator on the existing manifest.
@@ -422,6 +438,7 @@ active copy with saved/unsaved/saving/error feedback. Every save creates a bound
 **Expected data-model and migration changes**
 
 Append-only V6 migration (expected):
+
 - `file_versions`: project/file, side, content hash, storage reference, reason/checkpoint,
   pinned flag, created timestamp; dedupe by hash; bounded retention.
 - A blocked-save/recovery record or an operation-kind extension that M6 can consume.
@@ -519,6 +536,7 @@ automatic propagation. It does not write files in this milestone.
 **Expected data-model and migration changes**
 
 Append-only V7 migration (expected):
+
 - Docs-root/repository context state: last observed HEAD, branch, last reconciliation status/time.
 - Reconciliation runs or scan metadata; manifest status for pending changes.
 - No new destructive action.
@@ -609,6 +627,7 @@ copy is overwritten.
 **Expected data-model and migration changes**
 
 Append-only V8 migration (expected):
+
 - Extend `sync_operations` with project/file/root identity, baseline reference, operation kind,
   and repository context as needed.
 - `sync_conflicts`: project/file, repository hash/path, backup hash/path, base hash, context,
@@ -695,6 +714,7 @@ explained and can be retried or replanned without silent loss.
 **Expected data-model and migration changes**
 
 Append-only V9 migration (expected):
+
 - Conflict resolution metadata/audit: chosen action, actor/timestamp, resulting hashes, status.
 - No document content in audit rows.
 
@@ -778,6 +798,7 @@ to the wrong project.
 **Expected data-model and migration changes**
 
 Append-only V10 migration (expected):
+
 - `deletion_tombstones`: project/file/path, context, deleted timestamp, reason, status.
 - `trash_entries`: original path, stored payload reference, hash, deleted timestamp, purge-after,
   restore status.
@@ -869,6 +890,7 @@ referenced files are not deleted while other references remain.
 **Expected data-model and migration changes**
 
 Append-only V11 migration (expected):
+
 - `attachments`: project, classification (shared/private), content hash, storage reference,
   encryption format/version, size, MIME/type, created timestamp.
 - `attachment_references`: attachment, owner type/id or document path, created timestamp.
@@ -956,6 +978,7 @@ controls, without silently modifying external repository files or completed expo
 **Expected data-model and migration changes**
 
 Append-only V12 migration (expected):
+
 - Attachment classification/quarantine state, purge status, and content-free audit records.
 - No secret material or payload bytes in SQLite or logs.
 
@@ -1096,8 +1119,9 @@ features with acceptance.
 
 These require explicit resolution before the affected milestone:
 
-1. **Phase 1 M4 authorization.** Phase 1 cannot be declared complete without the application shell
-   and navigation. Approval is required before Phase 2.
+1. **Phase 1 M4 authorization.** The M4 decisions M4-D1–M4-D6 and Option B are approved, and
+   Checkpoint 1 is authorized. Checkpoints 2–6 remain unauthorized and Phase 1 is not complete.
+   M4 must pass its acceptance gates before Phase 2.
 2. **Minimal Phase 2 Projects surface.** P2-M1 proposes a minimal project create/select and Docs-
    registration surface. Phase 3 will expand it into the full Projects area. If this boundary is
    not approved, Phase 2 needs a different, explicitly approved entry point.
@@ -1128,15 +1152,15 @@ These require explicit resolution before the affected milestone:
 
 ## 7. Phase 2 verification matrix
 
-| Gate | Required evidence | Milestones |
-|---|---|---|
-| Unit | Three-way comparison, conflict classification, deletion ambiguity, branch-context checks, operation transitions, hashes, Markdown policy | M2–M11 |
-| Integration | Real SQLite manifests, baselines, conflicts, operations, versions, trash, attachments, typed commands | M1–M11 |
-| Filesystem/recovery | Temporary-directory scenarios at prepared/staged/replacing/verified; changed destination; external edit; branch switch; unavailable/reconnect; startup/resume; atomic failure | M3–M11 |
-| Security | Source preservation, HTML/MDX non-execution, sanitizer/URL/path policy, no renderer capability, redaction refusal, encrypted managed copies, purge | M2, M4, M7–M11 |
-| Accessibility | File tree, editor, conflict actions, source fallback, delete/restore, attachments, quarantine, recovery errors | M1–M11 |
-| Windows build | Production-equivalent packaged build with watcher/recovery behavior; harness excluded | M11 |
-| CI | Frontend/theme and native jobs green for the implementation commits | Every milestone; final M11 |
+| Gate                | Required evidence                                                                                                                                                             | Milestones                 |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
+| Unit                | Three-way comparison, conflict classification, deletion ambiguity, branch-context checks, operation transitions, hashes, Markdown policy                                      | M2–M11                     |
+| Integration         | Real SQLite manifests, baselines, conflicts, operations, versions, trash, attachments, typed commands                                                                         | M1–M11                     |
+| Filesystem/recovery | Temporary-directory scenarios at prepared/staged/replacing/verified; changed destination; external edit; branch switch; unavailable/reconnect; startup/resume; atomic failure | M3–M11                     |
+| Security            | Source preservation, HTML/MDX non-execution, sanitizer/URL/path policy, no renderer capability, redaction refusal, encrypted managed copies, purge                            | M2, M4, M7–M11             |
+| Accessibility       | File tree, editor, conflict actions, source fallback, delete/restore, attachments, quarantine, recovery errors                                                                | M1–M11                     |
+| Windows build       | Production-equivalent packaged build with watcher/recovery behavior; harness excluded                                                                                         | M11                        |
+| CI                  | Frontend/theme and native jobs green for the implementation commits                                                                                                           | Every milestone; final M11 |
 
 ## 8. Definition of done
 

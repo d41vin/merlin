@@ -50,6 +50,7 @@ merlin/
     ├── SECURITY.md
     ├── UI-STACK.md
     ├── IMPLEMENTATION-PLAN.md
+    ├── PHASE-1-M4-PLAN.md
     ├── PHASE-2-PLAN.md
     └── DECISIONS.md
 ```
@@ -59,6 +60,7 @@ The exact scaffold may differ if technical preflight identifies a compatibility 
 ## Development setup
 
 Prerequisites:
+
 - Windows 11
 - Node.js 24.22.1
 - pnpm 12.15.0
@@ -114,12 +116,14 @@ The scripts are backed by the configured Phase 0 tools. `BUILD-STATUS.md` record
 - [Security](docs/SECURITY.md)
 - [UI stack and library integration](docs/UI-STACK.md)
 - [Implementation plan](docs/IMPLEMENTATION-PLAN.md)
+- [Phase 1 Milestone 4 shell plan](docs/PHASE-1-M4-PLAN.md) (decisions and Option B approved; Checkpoint 1 authorized; Checkpoints 2–6 not authorized)
 - [Phase 2 Docs and Vault plan](docs/PHASE-2-PLAN.md) (proposed, not authorized)
 - [Decision log](docs/DECISIONS.md)
 
 ## Product boundaries
 
 Merlin v1 is not:
+
 - A hosted SaaS or team collaboration product.
 - A replacement for Git, IDEs, coding agents, or provider dashboards.
 - A universal usage-metering platform.
