@@ -3,6 +3,7 @@ import { expect, test, type Locator, type Page } from "@playwright/test"
 
 import { getFixture, MARKDOWN_FIXTURES } from "../../src/markdown/fixtures"
 import { contrastRatio } from "../../src/themes/contract"
+import { PROOF_HARNESS_PATH } from "../support/harness"
 
 async function computedThemeStyle(locator: Locator, pseudo?: string) {
   return locator.evaluate((element, pseudoElement) => {
@@ -87,7 +88,7 @@ test("pointer and keyboard panel behavior, semantic rendering, and accessibility
   await page.addInitScript(() => {
     window.localStorage.clear()
   })
-  await page.goto("/")
+  await page.goto(PROOF_HARNESS_PATH)
   await waitForProofs(page)
   await expect(
     page.getByRole("heading", { name: "Merlin Phase 0 technical preflight" }),
@@ -173,7 +174,7 @@ test("Merlin Dark hairline rendering remains visible across device pixel ratios"
     })
     const page = await context.newPage()
     try {
-      await page.goto("http://127.0.0.1:5173/")
+      await page.goto(`http://127.0.0.1:5173${PROOF_HARNESS_PATH}`)
       await expect(page.locator(".merlin-surface").first()).toBeVisible()
       const result = await page
         .locator(".merlin-surface")
@@ -215,7 +216,7 @@ test("Milkdown source fallback and hostile document security boundary", async ({
   page.on("request", (request) => {
     if (/^https:\/\/example\.com/.test(request.url())) remoteRequests.push(request.url())
   })
-  await page.goto("/")
+  await page.goto(PROOF_HARNESS_PATH)
   await waitForProofs(page)
 
   await expect(page.locator("[data-fixture='canonical'][data-mode='milkdown']")).toHaveCount(1)
@@ -267,7 +268,7 @@ test("Milkdown source fallback and hostile document security boundary", async ({
 test("Milkdown editor has a strong boundary and visible keyboard focus treatment", async ({
   page,
 }) => {
-  await page.goto("/")
+  await page.goto(PROOF_HARNESS_PATH)
   await waitForProofs(page)
   const editor = page.getByTestId("milkdown-editor-host")
   const content = editor.locator("[contenteditable='true']")
@@ -312,7 +313,7 @@ test("Merlin Dark computed component states and density remain semantic and acce
     })
     requestAnimationFrame(capture)
   })
-  await page.goto("/")
+  await page.goto(PROOF_HARNESS_PATH)
   await page.getByRole("button", { name: "Run current source proof" }).waitFor()
   await expect(page.locator("html")).toHaveAttribute("data-theme", "merlin-dark")
   await expect(page.locator("html")).toHaveAttribute("data-density", "default")

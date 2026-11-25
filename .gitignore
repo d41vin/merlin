@@ -1,6 +1,7 @@
 node_modules/
 .tools/
 dist/
+dist-harness/
 src-tauri/target/
 src-tauri/gen/schemas/.ds_store
 test-results/

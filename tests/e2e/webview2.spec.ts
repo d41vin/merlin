@@ -11,6 +11,7 @@ import {
   stopWebView2,
   type WebView2Session,
 } from "../support/webview2-process"
+import { proofHarnessUrl } from "../support/harness"
 
 async function layout(page: Page) {
   return JSON.parse((await page.getByTestId("layout-json").textContent()) ?? "{}") as {
@@ -83,6 +84,7 @@ test("real WebView2 interactions and SQLite persistence survive a native process
   try {
     session = await startWebView2()
     observePage(session.page)
+    await session.page.goto(proofHarnessUrl(session.page.url()))
     await waitForNativeReady(session.page)
     expect(
       await session.page.evaluate(
@@ -209,6 +211,7 @@ test("real WebView2 interactions and SQLite persistence survive a native process
 
     session = await restartWebView2(session)
     observePage(session.page)
+    await session.page.goto(proofHarnessUrl(session.page.url()))
     await waitForNativeReady(session.page)
     expect(await layout(session.page)).toEqual(persisted)
     const restoredSettings = await invokeNative<ApplicationSettings>(session.page, "settings_get")
@@ -314,16 +317,23 @@ test("optimized harness launches packaged assets and typed SQLite IPC", async ()
   try {
     session = await startWebView2("optimized-harness")
     observeErrors(session.page)
-    await waitForNativeReady(session.page)
     expect(session.mode).toBe("optimized-harness")
     expect(session.page.url()).toContain("tauri.localhost")
     expect(session.page.url()).not.toContain("localhost:5173")
+    await expect(session.page).toHaveTitle("Merlin")
+    expect(await session.page.locator("body").getAttribute("data-harness-entry")).toBeNull()
     expect(
       await session.page.evaluate(
         () =>
           (window as Window & { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__ !== undefined,
       ),
     ).toBe(true)
+    await session.page.goto(proofHarnessUrl(session.page.url()))
+    await expect(session.page.locator("body")).toHaveAttribute(
+      "data-harness-entry",
+      "merlin-proof-harness-entry-v1",
+    )
+    await waitForNativeReady(session.page)
     await expect(
       session.page.getByTestId("milkdown-editor-host").locator("[contenteditable='true']"),
     ).toHaveAccessibleName("Markdown rich editor")
@@ -368,6 +378,11 @@ test("optimized harness launches packaged assets and typed SQLite IPC", async ()
 
     session = await restartWebView2(session)
     observeErrors(session.page)
+    await session.page.goto(proofHarnessUrl(session.page.url()))
+    await expect(session.page.locator("body")).toHaveAttribute(
+      "data-harness-entry",
+      "merlin-proof-harness-entry-v1",
+    )
     await waitForNativeReady(session.page)
     expect(await layout(session.page)).toEqual(saved)
     const settings = await invokeNative<ApplicationSettings>(session.page, "settings_get")

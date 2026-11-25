@@ -1,0 +1,7 @@
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.harness.tsbuildinfo"
+  },
+  "include": ["tests/harness/**/*.ts", "tests/harness/**/*.tsx"]
+}

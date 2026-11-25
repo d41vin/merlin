@@ -6,6 +6,7 @@ export default tseslint.config(
   {
     ignores: [
       "dist/**",
+      "dist-harness/**",
       "node_modules/**",
       ".tools/**",
       "src-tauri/**",

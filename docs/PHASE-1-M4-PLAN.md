@@ -427,7 +427,9 @@ independently, merge them and record why rather than shipping an unverified boun
 
 ### M4.1 — Baseline guards and proof relocation
 
-**Status: authorized 2026-11-26. This is the first authorized implementation task.**
+**Status: implemented and verified 2026-11-26. The authorized local commit is
+`test: relocate phase 0 browser proofs to harness`; it is not pushed.** This is the first
+authorized implementation task.
 
 **Objective:** Preserve the Phase 0 proof gate before replacing the product surface, settle the
 optimized-harness mechanism, and add automated production/harness build-isolation guards.
@@ -489,7 +491,9 @@ the production Vite config single-entry, using a separate harness output directo
 automated isolation check.
 
 **Expected commit boundary:** `test: relocate phase 0 browser proofs to harness` (includes the
-approved harness-only build config).
+approved harness-only build config). Actual commands, outputs, production/harness isolation
+evidence, and remaining limitations are recorded in `BUILD-STATUS.md` under "Phase 1 Milestone 4
+documentation finalization and Checkpoint 1 (2026-11-26)".
 
 ### M4.2 — Navigation model, product shell, and honest destination states
 
