@@ -61,6 +61,7 @@ Build:
 Acceptance:
 - App launches on Windows 11.
 - Data survives restart.
+- The product shell, Overview/Projects/Resources navigation, and common controls meet their keyboard, focus, accessible-name, and navigation-state gates.
 - Contrast validation runs locally and in CI.
 - Components consume semantic tokens only.
 
