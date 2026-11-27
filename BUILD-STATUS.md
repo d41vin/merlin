@@ -5,7 +5,7 @@ Last updated: 2026-11-28
 ## Now
 
 - **Phase 1, Milestone 4, Checkpoint 2 (M4.2)** implementation is present in the working tree. It is uncommitted and unverified. Do not accept or commit it until every required gate passes and the product owner inspects the result.
-- The development workflow was simplified to one primary agent (`merlin`), optional read-only support agents, and local commits at verified slice boundaries. The workflow commit is recorded in the follow-up status commit.
+- The development workflow was simplified to one primary agent (`merlin`), optional read-only support agents, and local commits at verified slice boundaries. Workflow commit: `b81ccfca35a76bbe7dfae9c84542d0812c04ef73` (`chore: simplify opencode development workflow`).
 - Branch `main`. Actual base `HEAD` and `origin/main` are `3da8bfcf2a3a74ee6ffb93b464f89e9fb46baee7`. M4.1 is committed and present on the remote via that commit.
 - No push of the workflow or M4.2 work has occurred.
 
@@ -47,7 +47,7 @@ Last updated: 2026-11-28
 
 ## Last verified
 
-- 2026-11-28 — workflow change (pending commit): `.opencode/opencode.jsonc` parses; agent frontmatter is valid; Prettier passes on the changed workflow Markdown with an empty ignore override; `git diff --check` passes; `scripts/native.ps1` smoke tests for `node`, `pnpm`, and `cargo`.
+- 2026-11-28 — workflow commit `b81ccfca35a76bbe7dfae9c84542d0812c04ef73`: `.opencode/opencode.jsonc` parses; agent frontmatter is valid; Prettier passes on the changed workflow Markdown with an empty ignore override; `git diff --check` passes; `scripts/native.ps1` smoke tests for `node`, `pnpm`, and `cargo`.
 - 2026-11-28 — M4.2 application verification has **not** run. The only M4.2 evidence is `git diff --check`; the two Prettier failures above are outstanding.
 - 2026-11-28 — Prettier was reported run twice before the workflow change; the second run failed on the two files above. This is recorded history, not a claim of resolution.
 
