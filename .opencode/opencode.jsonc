@@ -1,6 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "default_agent": "merlin-orchestrator",
+  "default_agent": "merlin",
   "permissions": [
     { "action": "external_directory", "resource": "*", "effect": "deny" },
     {
@@ -36,7 +36,6 @@
     { "action": "websearch", "resource": "*", "effect": "deny" },
   ],
   "policies": [
-    { "action": "tool.use", "resource": "shell:git commit *", "effect": "deny" },
     { "action": "tool.use", "resource": "shell:git push *", "effect": "deny" },
     { "action": "tool.use", "resource": "shell:git reset --hard *", "effect": "deny" },
     { "action": "tool.use", "resource": "shell:git clean *", "effect": "deny" },
@@ -100,8 +99,8 @@
   ],
   "agents": {
     "explore": {
-      "description": "Read-only repository discovery for Merlin checkpoints",
-      "model": "tokenrouter/deepseek-v4.1-flash-1017-free",
+      "description": "Optional read-only repository discovery",
+      "model": "tokenrouter/deepseek-v4.1-flash-1017-free#max",
       "permissions": [
         { "action": "*", "resource": "*", "effect": "deny" },
         { "action": "read", "resource": "*", "effect": "allow" },
