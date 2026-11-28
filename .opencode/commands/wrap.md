@@ -8,6 +8,7 @@ Wrap up this session. This is the last slice for this session.
 ## 1. Current work
 
 - Finish and verify the current slice only. Commit it with the planned conventional message.
+- Push the verified slice to `origin/main` with a normal fast-forward. If the remote advanced or the branch diverged, stop and report. Record the pushed SHA; report hosted CI as pending unless its result is known.
 - If the slice cannot be completed safely, stop at a clean point, report exactly what is uncommitted, and do not fake verification.
 - Do not start the next slice or any later slice.
 

@@ -101,8 +101,10 @@ Inspect the actual repository, Git state, and installed tool versions. Do not in
 
 - Local commits are allowed after a verified slice. Stage explicit paths; never use `git add -A` or indiscriminate staging.
 - Never commit unverified work, unrelated changes, secrets, or generated artifacts.
-- Never push. Pushing requires explicit product-owner authorization.
-- Never use `git reset --hard`, `git clean`, rebase as repair, force push, history rewriting, tags, releases, or package publication.
+- Push the verified slice to `origin/main` after the full gate suite passes. Normal fast-forward only.
+- If the remote has advanced or the branch has diverged, stop and report.
+- Never use force push, `git reset --hard`, `git clean`, rebase as repair, history rewriting, tags, releases, or package publication.
+- If hosted CI fails, fix forward with a new commit.
 - Use conventional commit messages.
 
 ## Supporting agents
@@ -124,7 +126,7 @@ Return a concise report with:
 
 - The outcome and what changed.
 - Exact verification commands and results, including failures and skipped checks.
-- The commit SHA and message, if a commit was made.
+- The commit SHA and message, if a commit was made; the pushed SHA if pushed.
 - Remaining risks, blockers, and anything requiring a product-owner decision.
 
-Continue with the next unblocked slice unless a genuine escalation or verification gate blocks progress. Do not push.
+Continue with the next unblocked slice unless a genuine escalation or verification gate blocks progress. Push the verified slice under the Git policy.

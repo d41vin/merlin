@@ -241,11 +241,14 @@ If the documented procedure does not work, stop and report the exact command, ex
 - Check `BUILD-STATUS.md` before resuming work. Do not advance beyond its exact authorization.
 - Never mark work complete merely because code exists; the documented verification gates must pass.
 
-## Commits
+## Commits and pushes
 
 - Use conventional atomic commit messages with an appropriate description.
-- Local commits are allowed after a verified slice.
-- Do not push without explicit product-owner authorization.
+- Commit locally after a verified slice.
+- Push the verified slice to `origin/main` after the full gate suite passes. Normal fast-forward only.
+- Never force-push, rewrite history, delete remote branches, push tags, or publish packages.
+- If the remote has advanced or the branch has diverged, stop and report; do not rebase as repair.
+- If hosted CI fails, fix forward with a new commit.
 - Stage explicit paths; never use `git add -A` or indiscriminate staging.
 
 ## Operating mandate
@@ -273,7 +276,7 @@ Escalate only when:
 - Repeated credible attempts cannot resolve a blocker.
 - The existing specifications cannot reasonably resolve a consequential product tradeoff.
 
-Never push without explicit authorization. Never fake, weaken, or silently skip verification. Never use destructive Git recovery as automatic repair. Never overwrite user changes.
+Push verified slices under the policy in `## Commits and pushes`. Never fake, weaken, or silently skip verification. Never use destructive Git recovery as automatic repair. Never overwrite user changes.
 
 Commit completed, verified slices locally using conventional commit messages. Keep implementation, verification, manual acceptance, and publication status distinct.
 

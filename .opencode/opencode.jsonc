@@ -36,7 +36,12 @@
     { "action": "websearch", "resource": "*", "effect": "deny" },
   ],
   "policies": [
-    { "action": "tool.use", "resource": "shell:git push *", "effect": "deny" },
+    { "action": "tool.use", "resource": "shell:git push --force *", "effect": "deny" },
+    { "action": "tool.use", "resource": "shell:git push --force-with-lease *", "effect": "deny" },
+    { "action": "tool.use", "resource": "shell:git push -f *", "effect": "deny" },
+    { "action": "tool.use", "resource": "shell:git push --delete *", "effect": "deny" },
+    { "action": "tool.use", "resource": "shell:git push --mirror *", "effect": "deny" },
+    { "action": "tool.use", "resource": "shell:git push --tags *", "effect": "deny" },
     { "action": "tool.use", "resource": "shell:git reset --hard *", "effect": "deny" },
     { "action": "tool.use", "resource": "shell:git clean *", "effect": "deny" },
     { "action": "tool.use", "resource": "shell:git rebase *", "effect": "deny" },
