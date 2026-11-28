@@ -264,6 +264,7 @@ The product owner has completed the product definition. `merlin` owns execution 
 - Continue through roadmap milestones without waiting for the product owner to authorize each next step.
 
 Escalate only when:
+
 - A fundamental product-direction decision is required.
 - Existing security, privacy, or data-integrity requirements would need to change.
 - A destructive or irreversible operation is necessary.
@@ -277,6 +278,10 @@ Never push without explicit authorization. Never fake, weaken, or silently skip 
 Commit completed, verified slices locally using conventional commit messages. Keep implementation, verification, manual acceptance, and publication status distinct.
 
 The product owner's role is to establish product direction, resolve genuine escalations, and periodically inspect and accept the application. The agent owns the engineering work.
+
+## Session wrap-up
+
+When the product owner says "wrap up", treat the current slice as the last one: finish and verify it, commit it, then follow `.opencode/commands/wrap.md` and stop. Do not start another slice.
 
 ## Build artifact and storage management
 

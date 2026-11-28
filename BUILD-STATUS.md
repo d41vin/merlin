@@ -4,137 +4,35 @@ Last updated: 2026-11-28
 
 ## Now
 
-- **Phase 1, Milestone 4, Checkpoint 2 (M4.2)** is complete. Every required automated gate passes, manual Windows 11 verification passed, and the product owner accepted the checkpoint on 2026-11-28. It is committed locally as `feat: add product shell and navigation`; it is not pushed.
-- M4.2 scope is the product shell, typed three-destination navigation, `PrimaryNavigation`, `PageHeader`, `StatusMessage`, `UnavailableState`, the three honest destination pages, a fixed 240px sidebar, `shell.css`, and settings load/apply in `AppShell`. Sidebar resizing, common controls, proof-harness changes, settings UI, routing, and persistence remain out of scope for M4.2.
-- **Phase 1, Milestone 4, Checkpoint 3 (M4.3)** is implemented and every required automated gate passes. It is committed locally as `feat: add resizable session sidebar` (`dc5362a`); it is not pushed. Manual Windows 11 verification and product-owner acceptance are **pending** and are not inferred.
-- M4.3 adds the UI SDK resizable sidebar at 240px default with 200–320px pixel bounds, a named keyboard-operable resize handle, 28px navigation items with a 2px active indicator, hover/selected/focus states, session retention across destination changes, and reset to 240px on reload. No width persistence, settings key, IPC, migration, or browser storage is added.
-- **Phase 1, Milestone 4, Checkpoint 4 (M4.4)** is implemented and every required automated gate passes. It is committed locally as `feat: add minimal common controls` (`6712686`); it is not pushed. Manual Windows 11 verification and product-owner acceptance are **pending** and are not inferred.
-- M4.4 adds `Input`, `Textarea`, `Label`, and `Dialog` as token-styled local wrappers over installed Base UI/native primitives, focused Vitest coverage, a test-only controls harness, Chromium keyboard/focus/dialog/axe coverage, and harness build-isolation updates. The controls are not mounted in the product shell. The controls harness joins the optimized test harness under D-070; production remains single-entry.
-- **Phase 1, Milestone 4, Checkpoint 5 (M4.5)** is implemented and every required automated gate passes. It is committed locally as `test: verify phase 1 shell integration` (`6dc118b`); it is not pushed. Manual Windows 11 verification and product-owner acceptance are **pending** and are not inferred.
-- M4.5 proves the shell in real WebView2 development and optimized-harness builds: shell startup, settings IPC, sidebar bounds and destination retention, reload/restart reset to 240px, unchanged four-panel layout, proof-harness persistence across restart, and persisted density/reduced-motion application. Settings rejection and no-reflection assertions remain intact.
-- **Phase 1, Milestone 4, Checkpoint 6 (M4.6)** records Phase 1 automated closure. Every local gate passes, including production packaging and production-boundary checks. The local commit boundary is `docs: record phase 1 milestone 4 closure`; it is not pushed. Manual Windows 11 acceptance and hosted CI for a pushed commit remain **pending** and are not inferred.
-- Phase 1 is therefore **automatically verified but not product-owner accepted and not hosted-CI verified**. Phase 2 implementation proceeds under D-069 while those external checks remain pending.
-- **Phase 2, P2-M1 — project identity, registration, and Project Store foundation** is implemented and every required automated gate passes. It is committed locally as `feat: add project and docs registration foundation` (`0dc77bc`); it is not pushed. Manual Windows 11 acceptance and hosted CI remain **pending** and are not inferred.
-- P2-M1 adds the V3 `projects`, `repository_connections`, and `docs_roots` schema; stable UUID project identity; optional canonical repository connection with remote-identity reconnect detection; explicit Docs-root confirm/create/choose/skip actions; the deterministic Project Store skeleton under app data; a minimal Projects registration UI; and honest browser-only behavior. No document copy, edit, manifest, watcher, sync, conflict, attachment, or workbench behavior is added. Typed path fields are used; a native folder picker is deferred.
-- The development workflow is one primary agent (`merlin`), optional read-only support agents, and local commits at verified slice boundaries. Workflow commit: `b81ccfca35a76bbe7dfae9c84542d0812c04ef73` (`chore: simplify opencode development workflow`).
-- Branch `main`. Before this status update, `HEAD` is `0dc77bc` (`feat: add project and docs registration foundation`); `origin/main` is `3da8bfcf2a3a74ee6ffb93b464f89e9fb46baee7`. The nine local commits ahead of the remote are `b81ccfc`, `5c216ad`, `4bcab98`, `caf73a6`, `dc5362a`, `6712686`, `6dc118b`, `7b62f61`, and `0dc77bc`; this status update adds a tenth. No push of any local work has occurred.
+- **Phase 1 M4 automated closure** is committed (`7b62f61`). M4.2 is product-owner accepted; M4.3–M4.6 automated gates pass but manual Windows 11 acceptance remains pending and is not inferred.
+- **Phase 2 P2-M1 — project identity, registration, and Project Store foundation** is committed as `0dc77bc` (`feat: add project and docs registration foundation`). Manual Windows 11 acceptance and hosted CI remain pending.
+- P2-M1 adds the append-only V3 `projects`, `repository_connections`, and `docs_roots` schema; stable UUID identity; canonical repository paths with remote reconnect detection; explicit Docs-root confirm/create/choose/skip; the deterministic Project Store skeleton; a minimal Projects registration UI; and honest browser-only behavior. Typed path fields are used; a native folder picker is deferred (D-071).
+- Branch `main`; `HEAD` is `93a5a86` (`docs: record project registration completion`); `origin/main` is `3da8bfcf2a3a74ee6ffb93b464f89e9fb46baee7`. Ten local commits are ahead; nothing is pushed.
+- Workflow: one primary agent (`merlin`), optional read-only support, local commits at verified slice boundaries, `/wrap` for session handoff. Workflow commit `b81ccfca35a76bbe7dfae9c84542d0812c04ef73`.
 
 ## Next
 
-- Begin **Phase 2, P2-M2 — Docs manifest and read-only source browser** using `docs/PHASE-2-PLAN.md`, `docs/DOCS-AND-VAULT.md`, and `docs/SECURITY.md`. Preserve P2-M1 project/Docs-root records and Phase 1 gates.
-- Continue autonomous implementation under D-069. Complete P2-M1 and M4.3–M4.6 manual Windows 11 acceptance and hosted CI when the product owner is available; record them separately and never infer them.
-- Continue autonomous implementation of Merlin using the accepted product specifications, architecture, decisions, and roadmap as the source of truth.
-- The primary `merlin` agent owns engineering execution. Read `AGENTS.md`, relevant product documentation, `docs/DECISIONS.md`, and this file before continuing.
-- Independently select the next unblocked vertical slice based on dependencies, technical soundness, and overall product completeness; implementation order may be adjusted when technically justified.
-- Make ordinary technical, architectural, implementation, and UX decisions independently within the accepted product direction and constraints.
-- Decompose work into manageable slices. Implement, test, inspect, fix failures, and commit completed, verified slices locally using conventional commit messages.
-- Continue across roadmap milestones without waiting for product-owner approval at each checkpoint or milestone boundary.
-- If a slice needs product-owner manual acceptance, record it as pending and continue with work that does not depend on it. Never infer or fabricate acceptance.
-- Keep this file accurate and concise. Update `Now`, `Next`, `Blocked`, and `Last verified` when the operational state changes.
-- Do not push without explicit product-owner authorization.
+- **Phase 2, P2-M2 — Docs manifest and read-only source browser** (`docs/PHASE-2-PLAN.md` §P2-M2, `docs/DOCS-AND-VAULT.md`, `docs/SECURITY.md`). Preserve P2-M1 records and Phase 1 gates.
+- Continue autonomous implementation under D-069. Select the next unblocked slice; commit each verified slice locally.
+- Complete M4.3–M4.6 and P2-M1 manual Windows 11 acceptance, and hosted CI for a pushed commit, when the product owner is available. Record separately; never infer.
+- A native folder picker remains deferred (D-071).
 
 ## Blocked
 
-- No current implementation blocker.
-- Phase 1 manual Windows 11 acceptance and hosted CI for a pushed commit are pending; they do not block Phase 2 implementation under D-069.
-- P2-M1 product-owner manual acceptance is pending; it does not block P2-M2 implementation.
-- `scripts/native.ps1` provides the verified process-scoped pnpm and native environment.
-- The machine-wide pnpm launcher remains broken (`C:\Program Files\nodejs\node_modules\pnpm\pnpm.exe` is missing). Continue using `scripts/native.ps1`. Do not make machine-wide changes without explicit authorization.
-- Escalate only when a fundamental product-direction decision is required, an existing security/privacy/data-integrity requirement must change, a destructive or irreversible operation is necessary, money must be spent, something must be published externally, a required verification gate cannot run, repeated credible attempts cannot resolve a blocker, or specifications cannot reasonably resolve a consequential product tradeoff.
-- Never push without explicit authorization. Never fake, weaken, or silently skip verification. Never use destructive Git recovery as automatic repair. Never overwrite user changes.
+- No implementation blocker.
+- The machine-wide pnpm launcher is broken (`C:\Program Files\nodejs\node_modules\pnpm\pnpm.exe` missing). Use `powershell -NoProfile -File scripts/native.ps1 <command>`. No machine-wide changes without authorization.
+- Manual Windows 11 acceptance and hosted CI are pending; they do not block implementation.
+- Escalate only for the conditions in `AGENTS.md`: product direction, security/privacy/data integrity, destructive operations, money/publishing, gates that cannot run, repeated blockers, or unresolved consequential tradeoffs.
 
 ## Last verified
 
-- 2026-11-28 — P2-M1 project registration gates, run through `powershell -NoProfile -File scripts/native.ps1` unless noted:
-  - `pnpm format:check` — exit 0; Prettier passed and `cargo fmt --check` produced no findings after formatting the new Rust modules.
-  - `pnpm typecheck` — exit 0; all three TypeScript projects passed.
-  - `pnpm lint:frontend` — exit 0; `eslint . --max-warnings=0` produced no findings.
-  - `pnpm lint:rust` and `pnpm lint:rust:harness` — exit 0; Clippy passed with `-D warnings` in default and test-harness configurations.
-  - `pnpm test:themes` — exit 0; 74 contrast pairings, 1 bundled theme, 39 production source files consume registered tokens.
-  - `pnpm test:frontend` — exit 0; 22 test files, 114 tests passed, including new project registration UI tests.
-  - `pnpm test:e2e` — exit 0; 8 Chromium tests passed.
-  - `pnpm test:webview2` — exit 0; 3 real WebView2 tests passed in 1.3m. The new project-registration test created a project, connected a temporary repository, confirmed a detected `docs/` root, verified axe accessibility on the page and open dialog, restarted the native process, and confirmed the project, repository, and Docs root persisted.
-  - `pnpm test:rust` — exit 0; 42 tests passed, 0 failed. Coverage includes V2→V3 migration with V1/V2 history preservation, project creation with and without a repository, Docs-root confirm/create/skip, duplicate path/remote reconnect detection, path traversal/absolute/relative/missing rejection, application-data containment, symlink escape, Project Store isolation/idempotence, and missing Docs-root state.
-  - `pnpm test:rust:harness` — exit 0; 43 tests passed, 0 failed under `test-harness`.
-  - `pnpm tauri build --features custom-protocol,production --no-binary-patching` — exit 0; production executable SHA256 `0D9B2CF5FC6604D7878D6B53CB433D989DEA26EC357C5D72046A4E0B04FD64F2`; NSIS installer `Merlin_0.1.0_x64-setup.exe` (3,213,072 bytes, SHA256 `FF139A3CEAB8B2AC93FC44220EC0E567F9AAEEFA203CD696092AA32F49AC14FF`).
-  - `pnpm build:test-harness` — exit 0; optimized harness rebuilt with all three harness pages and Project registration code; SHA256 `825E4B624D13B438C125B861DCD4D72C5B767559775814713CD1B64A384E51D4`.
-  - `pnpm verify:build-isolation` — exit 0; production remains single-entry with no harness page/path/marker; harness contains `index.html`, `proofs.html`, and `controls.html`; both executables passed.
-  - `pnpm verify:production-boundary` — exit 0; all eight production-boundary gates passed with the rebuilt production package and harness. Evidence: `test-results/production-boundary/evidence.json`.
-  - Manual Windows 11 acceptance and hosted CI remain **unverified**. No push was performed.
-- 2026-11-28 — M4.6 Phase 1 automated closure, run through `powershell -NoProfile -File scripts/native.ps1` unless noted:
-  - `pnpm format:check` — exit 0; Prettier passed and `cargo fmt --check` produced no findings.
-  - `pnpm typecheck` — exit 0; all three TypeScript projects passed.
-  - `pnpm lint` — exit 0; frontend ESLint had zero warnings; default and harness Clippy passed with `-D warnings`.
-  - `pnpm test:themes` — exit 0; 74 contrast pairings validated, 1 bundled theme validated, 36 production source files consume registered tokens.
-  - `pnpm test:frontend` — exit 0; 21 test files, 111 tests passed.
-  - `pnpm test:e2e` — exit 0; 8 Chromium tests passed.
-  - `pnpm test:webview2` — exit 0; 2 real WebView2 tests passed in 1.0m, covering development shell/settings/sidebar, native proof-harness persistence and restart, settings rejection/no-reflection, optimized-harness shell/IPC/persistence, and no console errors.
-  - `pnpm test:rust` — exit 0; 33 tests passed, 0 failed.
-  - `pnpm test:rust:harness` — exit 0; 36 tests passed, 0 failed.
-  - `pnpm build:test-harness` — exit 0; optimized harness reconstructed with `index.html`, `proofs.html`, and `controls.html`; SHA256 `6F399240CEA5E4F4B8223532710C28B41EF5151A2BD5DBC05797150F40E51C8F`.
-  - `pnpm tauri build --features custom-protocol,production --no-binary-patching` — exit 0; production executable built, pre-bundle marker verification passed, NSIS installer generated at `src-tauri/target/release/bundle/nsis/Merlin_0.1.0_x64-setup.exe` (3,152,123 bytes, SHA256 `1572F989DB0C1398AEC5268600B875438DBFEF31C6F77739E7F27F57783702B0`). Production executable SHA256 `0A677AAB42140E9CDFE74F660A45F4824282DC7E87FDC54148C518CF24EFEACC`.
-  - `pnpm verify:build-isolation` — exit 0; production has exactly one HTML entry and no harness page/path/marker; the harness contains `index.html`, `proofs.html`, and `controls.html`; proof and controls markers are confined to harness assets; both executables passed.
-  - `pnpm verify:production-boundary` — exit 0; all eight production-boundary gates passed, including production-feature resolver rejection, production/test-harness conflict rejection, unauthorized harness rejection, incomplete production-feature rejection, binary marker scans, installer regeneration, and harness exclusion. Evidence: `test-results/production-boundary/evidence.json`. A stale Phase 0 `Merlin Preflight` installer was removed from the ignored bundle directory before the final evidence run; the current installer is the only bundle artifact.
-  - Log-path finding: no product log-path setting, command, schema column, or logging framework exists in `src/` or `src-tauri/src/`. The only process log is the test-harness output at ignored `test-results/webview2/process.log`. Production source contains no `localStorage`, `sessionStorage`, IndexedDB, cookie, or `autoSaveId` usage; matches are limited to tests and a proof comment.
-  - Manual Windows 11 acceptance and hosted CI remain **unverified**. `gh` is not installed and push is unauthorized, so hosted `frontend-theme`/`native` jobs cannot be queried for these local commits.
-- 2026-11-28 — M4.5 gates, run through `powershell -NoProfile -File scripts/native.ps1`:
-  - `pnpm format:check` — exit 0; Prettier passed and `cargo fmt --check` produced no findings.
-  - `pnpm typecheck` — exit 0; all three TypeScript projects passed.
-  - `pnpm lint:frontend` — exit 0; `eslint . --max-warnings=0` produced no findings.
-  - `pnpm test:themes` — exit 0; 74 contrast pairings, 1 bundled theme, 36 production source files.
-  - `pnpm test:frontend` — exit 0; 21 test files, 111 tests passed.
-  - `pnpm test:e2e` — exit 0; 8 Chromium tests passed.
-  - `pnpm test:webview2` — exit 0; 2 real WebView2 tests passed in 1.0m. Development mode verified shell startup, three destinations, sidebar 240px/keyboard bounds, destination retention, reload reset, unchanged null panel layout, no browser storage, shell axe, settings IPC, rejection/no-reflection canary, proof-harness layout persistence through a native restart, and persisted compact density/forced reduced motion on the restarted shell. Optimized-harness mode verified packaged shell assets, Tauri IPC, shell/navigation/sidebar startup, unchanged null layout, proof-harness persistence and restart, and no console errors.
-  - `pnpm test:rust` — exit 0; 33 tests passed, 0 failed. Settings and layout repository coverage passed.
-  - `pnpm test:rust:harness` — exit 0; 36 tests passed, 0 failed, including harness-confined database paths, settings, and layout persistence.
-- 2026-11-28 — M4.4 gates, run through `powershell -NoProfile -File scripts/native.ps1` unless noted:
-  - `pnpm format:check` — exit 0; "All matched files use Prettier code style!" and `cargo fmt --check` produced no findings. Prettier initially reported `scripts/verify-build-isolation.mjs` and `src/components/ui/dialog.tsx`; only those files were rewritten.
-  - `pnpm typecheck` — exit 0; `tsc --noEmit` passed for `tsconfig.app.json`, `tsconfig.node.json`, and `tsconfig.harness.json`.
-  - `pnpm lint:frontend` — exit 0; `eslint . --max-warnings=0` produced no findings.
-  - `pnpm test:themes` — exit 0; 74 contrast pairings validated, 1 bundled theme validated, 36 production source files consume registered tokens.
-  - `pnpm test:frontend` — exit 0; 21 test files, 111 tests passed, including Input, Textarea, Label, and Dialog behavior.
-  - `pnpm test:e2e` — exit 0; 8 Chromium tests passed, including "minimal common controls expose labels, focus, disabled/error states, and dialog behavior" with label associations, focus ring and contrast, disabled/invalid states, dialog focus containment, Escape/Close, focus return, axe, no remote requests, and no console errors.
-  - `pnpm build` — exit 0; production build emitted only `dist/index.html`, one CSS asset (21.98 kB), and one JS asset (289.47 kB). The unused control implementations are tree-shaken from the production script.
-  - `pnpm build:harness:frontend` — exit 0; harness build emitted `index.html`, `tests/harness/proofs.html`, `tests/harness/controls.html`, and assets. Vite reported the existing chunk-size warning for the proofs chunk (709.00 kB); the command did not fail.
-  - `pnpm build:test-harness` — exit 0; optimized harness executable rebuilt with both harness pages (SHA256 `6F399240CEA5E4F4B8223532710C28B41EF5151A2BD5DBC05797150F40E51C8F`).
-  - `pnpm verify:build-isolation` — exit 0; production contains exactly one HTML entry and no harness page/path/marker; the harness contains `index.html`, `proofs.html`, and `controls.html`; proof and controls markers are present only in harness assets; both executables passed isolation checks. Evidence: `test-results/build-isolation/evidence.json`.
-- 2026-11-28 — M4.3 gates, all run through `powershell -NoProfile -File scripts/native.ps1`:
-  - `pnpm format:check` — exit 0; "All matched files use Prettier code style!" and `cargo fmt --check` produced no findings.
-  - `pnpm typecheck` — exit 0; `tsc --noEmit` passed for `tsconfig.app.json`, `tsconfig.node.json`, and `tsconfig.harness.json`.
-  - `pnpm lint:frontend` — exit 0; `eslint . --max-warnings=0` produced no findings.
-  - `pnpm test:themes` — exit 0; 74 contrast pairings validated, 1 bundled theme validated, 32 production source files consume registered tokens.
-  - `pnpm test:frontend` — exit 0; 17 test files, 103 tests passed.
-  - `pnpm test:e2e` — exit 0; 7 Chromium tests passed, including "sidebar resizes by pointer and keyboard within session bounds and resets on reload" with pointer drag, Home/End/Arrow keys, destination retention, 760px window bounds, reload reset, focus ring, contrast, axe, and no browser storage.
-  - `pnpm build` — exit 0; production build emitted only `dist/index.html`, one CSS asset (20.42 kB), and one JS asset (289.47 kB).
-  - `pnpm build:harness:frontend` — exit 0; harness build emitted both entries and assets. Vite reported the existing chunk-size warning for the proofs chunk (743.96 kB); the command did not fail.
-  - `pnpm verify:build-isolation` — exit 0; production output contains exactly one HTML entry with no harness page/path/marker; the optimized harness contains both entries; both executables passed isolation checks. Evidence: `test-results/build-isolation/evidence.json`.
-- 2026-11-28 — M4.3 implementation note: the installed UI SDK `0.1.0-beta.13` resolves a pixel `defaultSize` against pre-layout panel widths at startup when reduced motion is active, producing an incorrect default share. The shell supplies a two-panel initial percentage layout derived from the measured viewport (`initialSidebarLayout`) so the 240px session default holds. CSS `min-width: 200px`/`max-width: 320px` on the sidebar panel keeps the approved pixel bounds stable during the SDK's asynchronous group-resize reconciliation; the SDK still owns pointer/keyboard resize and layout. This is a workaround for observed beta behavior, not a second layout implementation.
-- 2026-11-28 — docs commit `docs: adopt autonomous operating mandate` (local; not pushed):
-  - `powershell -NoProfile -File scripts/native.ps1 pnpm exec prettier --check AGENTS.md BUILD-STATUS.md .opencode/agents/merlin.md` — exit 0; "All matched files use Prettier code style!"
-  - `git diff --check` — exit 0; no output.
-- 2026-11-28 — M4.2 required gates, all run through `powershell -NoProfile -File scripts/native.ps1`:
-  - `pnpm format:check` — first run exit 1 with Prettier warnings for `src/app/AppShell.test.tsx` and `tests/e2e/chromium.spec.ts`. Fixed only those files with `pnpm exec prettier --write src/app/AppShell.test.tsx tests/e2e/chromium.spec.ts`; rerun exit 0: "All matched files use Prettier code style!" and `cargo fmt --check` produced no findings.
-  - `pnpm typecheck` — exit 0; `tsc --noEmit` passed for `tsconfig.app.json`, `tsconfig.node.json`, and `tsconfig.harness.json`.
-  - `pnpm lint:frontend` — exit 0; `eslint . --max-warnings=0` produced no findings.
-  - `pnpm test:themes` — exit 0; 74 contrast pairings validated, 1 bundled theme validated, 32 production source files consume registered tokens.
-  - `pnpm test:frontend` — exit 0; 17 test files, 101 tests passed.
-  - `pnpm test:e2e` — exit 0; 6 Chromium tests passed, including "product shell exposes three honest destinations with accessible navigation".
-  - `pnpm build` — exit 0; production build emitted only `dist/index.html`, one CSS asset (19.87 kB), and one JS asset (237.67 kB).
-  - `pnpm build:harness:frontend` — exit 0; harness build emitted `dist-harness/index.html` and `dist-harness/tests/harness/proofs.html`. Vite reported a chunk-size warning for the proofs chunk (795.50 kB); the command did not fail.
-  - `pnpm verify:build-isolation` — exit 0; production output contains exactly one HTML entry with no harness page/path/marker; the optimized harness contains both entries; both executables passed isolation checks. Evidence: `test-results/build-isolation/evidence.json`.
-  - `git diff --check` — exit 0; no output.
-- 2026-11-28 — M4.2 optional native regression checks (not acceptance gates): `pnpm test:rust` passed 33 tests with 0 failures; `pnpm test:rust:harness` passed 36 tests with 0 failures.
-- 2026-11-28 — workflow commit `b81ccfca35a76bbe7dfae9c84542d0812c04ef73`: `.opencode/opencode.jsonc` parses; agent frontmatter is valid; Prettier passes on the changed workflow Markdown with an empty ignore override; `git diff --check` passes; `scripts/native.ps1` smoke tests for `node`, `pnpm`, and `cargo`.
-- 2026-11-28 — M4.2 manual Windows 11 verification passed: the shell is the first screen; all three destinations are reachable by pointer and keyboard; `aria-current="page"`, focus retention, settings/density startup, honest unavailable states, and the absence of fabricated content were confirmed. The product owner accepted the checkpoint.
-- 2026-11-28 — Prettier was reported run twice before the workflow change; the second run failed on the two files above. This is recorded history; the failures were fixed and the gate now passes as recorded above.
+- 2026-11-28 — P2-M1 gates, all through `scripts/native.ps1` and all exit 0: `format:check`; `typecheck`; `lint:frontend`; `lint:rust`; `lint:rust:harness`; `test:themes` (74 pairings, 39 source files); `test:frontend` (22 files, 114 tests); `test:e2e` (8 Chromium); `test:webview2` (3 real, including registration across restart); `test:rust` (42); `test:rust:harness` (43); `tauri build` (installer generated); `build:test-harness`; `verify:build-isolation`; `verify:production-boundary` (all eight gates); `git diff --check`.
+- 2026-11-28 — M4.2–M4.6 and earlier workflow verification: see git history and `test-results/build-isolation/evidence.json`, `test-results/production-boundary/evidence.json`. No earlier failures remain open.
+- Manual Windows 11 acceptance and hosted CI remain unverified for the local commits; no push has occurred.
 
 ## Durable state
 
-- Phase 1 M4 scope and approved decisions: `docs/PHASE-1-M4-PLAN.md`, `docs/DECISIONS.md` D-061–D-066.
-- Workflow decision: `docs/DECISIONS.md` D-068 (supersedes D-067).
-- Autonomous roadmap execution: `docs/DECISIONS.md` D-069.
-- Test-only controls harness boundary: `docs/DECISIONS.md` D-070.
-- P2-M1 project registration model and reconnect semantics: `docs/DECISIONS.md` D-071.
-- Phase 1 automated closure evidence: `BUILD-STATUS.md`, `test-results/build-isolation/evidence.json`, `test-results/production-boundary/evidence.json`.
-- Phase 2 P2-M1 is implemented; next slice is P2-M2. Phase 1 manual acceptance and hosted CI remain pending.
+- Decisions: D-061–D-066 (M4), D-068 (simplified workflow), D-069 (autonomous mandate), D-070 (controls harness), D-071 (P2-M1 registration/reconnect).
+- Evidence: `test-results/build-isolation/evidence.json`, `test-results/production-boundary/evidence.json`.
+- Session wrap-up: `.opencode/commands/wrap.md`.
 - Read `AGENTS.md` before resuming.

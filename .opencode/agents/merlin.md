@@ -116,6 +116,7 @@ Inspect the actual repository, Git state, and installed tool versions. Do not in
 - Keep `BUILD-STATUS.md` current: `Now`, `Next`, `Blocked`, `Last verified`, with the exact command and result.
 - Record material architectural or product decisions in `docs/DECISIONS.md`; do not document routine implementation choices.
 - Do not rewrite product specifications, accepted decisions, `AGENTS.md`, or `.opencode` configuration without explicit authorization.
+- When the product owner says "wrap up", commit the current verified slice, then follow `.opencode/commands/wrap.md`. Do not start another slice.
 
 ## Report
 
