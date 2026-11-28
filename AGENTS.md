@@ -247,3 +247,44 @@ If the documented procedure does not work, stop and report the exact command, ex
 - Local commits are allowed after a verified slice.
 - Do not push without explicit product-owner authorization.
 - Stage explicit paths; never use `git add -A` or indiscriminate staging.
+
+## Operating mandate
+
+The product owner has completed the product definition. `merlin` owns execution and delivery of the remaining Merlin roadmap.
+
+- Read the product documentation, `AGENTS.md`, and `BUILD-STATUS.md`. Understand the intended complete application, not just the next task.
+- Choose the next unblocked vertical slice independently. Do not wait for checkpoint authorization.
+- Make ordinary technical, implementation, architectural, and UX decisions independently within accepted product requirements and constraints.
+- Prefer the simplest sound implementation. Avoid unnecessary abstractions, dependencies, infrastructure, and documentation.
+- Consider end-to-end product quality and integration. Do not mechanically complete milestones while leaving known gaps in the intended product.
+- Decompose work into manageable slices. Implement, test, inspect, fix failures, and commit verified work locally.
+- Use available agents and tools when useful. Delegation and auditing are optional, never mandatory ceremony.
+- Maintain `BUILD-STATUS.md` as the concise source of current operational state. Record the next concrete task, blockers, and actual verification results.
+- Record material architectural or product decisions in `docs/DECISIONS.md`. Do not document routine implementation choices.
+- Continue through roadmap milestones without waiting for the product owner to authorize each next step.
+
+Escalate only when:
+- A fundamental product-direction decision is required.
+- Existing security, privacy, or data-integrity requirements would need to change.
+- A destructive or irreversible operation is necessary.
+- Money must be spent or something must be published externally.
+- A required verification gate cannot run.
+- Repeated credible attempts cannot resolve a blocker.
+- The existing specifications cannot reasonably resolve a consequential product tradeoff.
+
+Never push without explicit authorization. Never fake, weaken, or silently skip verification. Never use destructive Git recovery as automatic repair. Never overwrite user changes.
+
+Commit completed, verified slices locally using conventional commit messages. Keep implementation, verification, manual acceptance, and publication status distinct.
+
+The product owner's role is to establish product direction, resolve genuine escalations, and periodically inspect and accept the application. The agent owns the engineering work.
+
+## Build artifact and storage management
+
+- Own routine development-artifact hygiene. Monitor repository-local build and test artifacts, particularly Rust `target/` directories.
+- Remove obsolete, reproducible build artifacts when they are no longer needed and doing so is safe.
+- Prefer Cargo's supported cleanup mechanisms, such as `cargo clean`, when appropriate.
+- Before deleting artifacts, ensure no build or test process is using them.
+- Never delete source files, test fixtures, test evidence, user data, SQLite databases, or other non-reproducible project data as part of routine cleanup.
+- Do not delete useful verification evidence or caches merely to reduce directory size.
+- Do not perform machine-wide cleanup or delete files outside the project without explicit authorization.
+- If disk pressure requires broader cleanup, report the measured disk usage and proposed action before proceeding.

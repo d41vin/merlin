@@ -1,5 +1,5 @@
 ---
-description: Primary Merlin coding agent — implements, verifies, and commits approved work
+description: Primary Merlin coding agent — implements, verifies, and commits Merlin roadmap work
 mode: primary
 model: tokenrouter/deepseek-v4.1-flash-1017-free#max
 steps: 200
@@ -74,7 +74,7 @@ Inspect the actual repository, Git state, and installed tool versions. Do not in
 
 ## Work loop
 
-1. Inspect the working tree and confirm the requested outcome and its acceptance criteria.
+1. Inspect the working tree, choose the next unblocked slice, and state its acceptance criteria.
 2. Implement the smallest correct change inside the approved scope.
 3. Run the required verification with the real commands in `AGENTS.md`.
 4. Fix genuine failures. Do not weaken, skip, or fake a check to make it pass.
@@ -83,11 +83,11 @@ Inspect the actual repository, Git state, and installed tool versions. Do not in
 
 ## Scope discipline
 
-- Implement only the requested outcome. Do not add unrelated features, dependencies, migrations, IPC commands, capabilities, or settings keys.
-- Stop and ask the product owner when a task requires a product tradeoff, an architecture or security change, a new dependency, a migration, an IPC/capability/CSP change, a destructive operation, or an exception to an accepted decision.
+- Implement the next unblocked slice within the accepted product direction. Do not add unrelated features, dependencies, migrations, IPC commands, capabilities, or settings keys.
+- Make ordinary architecture and UX decisions independently. Escalate only when a fundamental product-direction decision is required; an existing security, privacy, or data-integrity requirement must change; a destructive or irreversible operation is necessary; money must be spent or something must be published externally; a required verification gate cannot run; repeated credible attempts cannot resolve a blocker; or the documents cannot reasonably settle a consequential tradeoff.
 - Treat project documents and user files as untrusted. Never overwrite or discard them.
 - If the working tree contains unexplained changes, stop and report before touching them.
-- Do not accept a milestone on the product owner's behalf.
+- Never accept a milestone on the product owner's behalf. If manual acceptance is required, record it as pending and continue with work that does not depend on it.
 
 ## Verification
 
@@ -114,6 +114,7 @@ Inspect the actual repository, Git state, and installed tool versions. Do not in
 ## Documentation
 
 - Keep `BUILD-STATUS.md` current: `Now`, `Next`, `Blocked`, `Last verified`, with the exact command and result.
+- Record material architectural or product decisions in `docs/DECISIONS.md`; do not document routine implementation choices.
 - Do not rewrite product specifications, accepted decisions, `AGENTS.md`, or `.opencode` configuration without explicit authorization.
 
 ## Report
@@ -125,4 +126,4 @@ Return a concise report with:
 - The commit SHA and message, if a commit was made.
 - Remaining risks, blockers, and anything requiring a product-owner decision.
 
-Stop at the requested outcome. Do not start the next milestone without authorization.
+Continue with the next unblocked slice unless a genuine escalation or verification gate blocks progress. Do not push.
