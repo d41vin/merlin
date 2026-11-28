@@ -34,7 +34,7 @@ Pin dependency versions. The Phase 0 compatibility baseline is Windows 11, Node.
 
 Phase 0 technical proofs and the Phase 1 shell foundation are implemented. The normal application renders the Overview, Projects, and Resources shell with three honest unavailable states, saved display settings, a session-only resizable sidebar, and the minimal common-control foundation. The Phase 1 closure automated gates pass, including real WebView2, optimized-harness, production packaging, and production-boundary checks. Manual Windows 11 acceptance and hosted CI for a pushed commit remain pending; Phase 1 is not claimed as product-owner accepted.
 
-Phase 2 (Docs and Vault) is underway under the autonomous operating mandate (D-069). P2-M1 adds stable project registration, optional repository connection, explicit Docs-root confirmation/creation/skip, and the deterministic Merlin Project Store skeleton. See `BUILD-STATUS.md` for current operational state and exact verification evidence.
+Phase 2 (Docs and Vault) is underway under the autonomous operating mandate (D-069). P2-M1 adds stable project registration, optional repository connection, explicit Docs-root confirmation/creation/skip, and the deterministic Merlin Project Store skeleton. P2-M2 adds an explicit, bounded Docs manifest; a read-only tree with recent documents; sanitized Markdown preview and exact source mode; and fail-closed handling for missing, oversized, invalid-encoding, unreadable, and linked entries. See `BUILD-STATUS.md` for current operational state and exact verification evidence.
 
 ## Repository structure
 
@@ -122,7 +122,7 @@ The scripts use the verified Windows toolchain and record their actual outcomes 
 - [UI stack and library integration](docs/UI-STACK.md)
 - [Implementation plan](docs/IMPLEMENTATION-PLAN.md)
 - [Phase 1 Milestone 4 shell plan](docs/PHASE-1-M4-PLAN.md) (automated closure complete; M4.3–M4.6 manual acceptance and hosted CI pending)
-- [Phase 2 Docs and Vault plan](docs/PHASE-2-PLAN.md) (P2-M1 implemented; later milestones proceed under D-069; hosted CI and manual acceptance pending)
+- [Phase 2 Docs and Vault plan](docs/PHASE-2-PLAN.md) (P2-M1 and P2-M2 implemented; later milestones proceed under D-069; hosted CI and manual acceptance pending)
 - [Decision log](docs/DECISIONS.md)
 
 ## Product boundaries
