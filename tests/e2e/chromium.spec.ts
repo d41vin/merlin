@@ -548,3 +548,130 @@ test("Merlin Dark computed component states and density remain semantic and acce
   expect(accessibility.violations).toEqual([])
   expect(consoleErrors).toEqual([])
 })
+
+test("product shell exposes three honest destinations with accessible navigation", async ({
+  page,
+}) => {
+  const consoleErrors: string[] = []
+  page.on("console", (message) => {
+    if (message.type() === "error") consoleErrors.push(message.text())
+  })
+  const externalRequests: string[] = []
+  page.on("request", (request) => {
+    if (request.url().startsWith("https://")) externalRequests.push(request.url())
+  })
+  await page.addInitScript(() => {
+    window.localStorage.clear()
+    window.sessionStorage.clear()
+  })
+
+  await page.goto("/")
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "merlin-dark")
+  await expect(page.locator("html")).toHaveAttribute("data-density", "default")
+  await expect(page.locator("html")).not.toHaveAttribute("data-force-reduced-motion")
+  await expect(page.getByRole("heading", { level: 1, name: "Overview" })).toBeVisible()
+  await expect(page.getByText(/technical preflight|not a Merlin product screen/i)).toHaveCount(0)
+  await expect(page.getByText("Verification boundary")).toHaveCount(0)
+  await expect(page.getByTestId("control-state-proof")).toHaveCount(0)
+  await expect(page.getByRole("status")).toHaveCount(0)
+
+  const navigation = page.getByRole("navigation", { name: "Primary navigation" })
+  const navButtons = navigation.getByRole("button")
+  await expect(navButtons).toHaveCount(3)
+  for (const name of ["Overview", "Projects", "Resources"]) {
+    const button = navigation.getByRole("button", { name, exact: true })
+    await expect(button).toBeVisible()
+    await expect(button).toBeEnabled()
+  }
+
+  const main = page.getByRole("main")
+  await expect(main.locator("button, table, ul, ol, a, input, select, textarea")).toHaveCount(0)
+  await expect(page.getByText(/no projects yet|no resources yet/i)).toHaveCount(0)
+  await expect(page.getByRole("button", { name: /new project|add resource/i })).toHaveCount(0)
+
+  const destinations = [
+    {
+      name: "Overview",
+      copy: "Overview is not implemented in this build. Project summaries, resource readiness, and activity are not available yet.",
+    },
+    {
+      name: "Projects",
+      copy: "Project records and the project workbench are not implemented in this build.",
+    },
+    {
+      name: "Resources",
+      copy: "Resource records, accounts, and usage tracking are not implemented in this build.",
+    },
+  ]
+
+  async function expectActiveDestination(name: string, copy: string) {
+    const button = navigation.getByRole("button", { name, exact: true })
+    await expect(button).toHaveAttribute("aria-current", "page")
+    await expect(button).toBeFocused()
+    await expect(page.locator("[aria-current='page']")).toHaveCount(1)
+    await expect(page.getByRole("heading", { level: 1, name })).toBeVisible()
+    await expect(page.getByRole("main", { name })).toBeVisible()
+    await expect(page.getByText(copy, { exact: true })).toBeVisible()
+    await expect(page.getByRole("status")).toHaveCount(0)
+  }
+
+  await page.keyboard.press("Tab")
+  const overviewButton = navigation.getByRole("button", { name: "Overview", exact: true })
+  await expect(overviewButton).toBeFocused()
+  const overviewFocusVisible = await overviewButton.evaluate((element) =>
+    element.matches(":focus-visible"),
+  )
+  expect(overviewFocusVisible).toBe(true)
+  const overviewOutlineWidth = await overviewButton.evaluate(
+    (element) => getComputedStyle(element).outlineWidth,
+  )
+  expect(overviewOutlineWidth).toBe("2px")
+  await page.keyboard.press("Enter")
+  await expectActiveDestination(destinations[0]!.name, destinations[0]!.copy)
+
+  await page.keyboard.press("Tab")
+  const projectsButton = navigation.getByRole("button", { name: "Projects", exact: true })
+  await expect(projectsButton).toBeFocused()
+  await page.keyboard.press("Enter")
+  await expectActiveDestination(destinations[1]!.name, destinations[1]!.copy)
+
+  await page.keyboard.press("Tab")
+  const resourcesButton = navigation.getByRole("button", { name: "Resources", exact: true })
+  await expect(resourcesButton).toBeFocused()
+  await page.keyboard.press("Space")
+  await expectActiveDestination(destinations[2]!.name, destinations[2]!.copy)
+
+  for (const destination of destinations) {
+    await navigation.getByRole("button", { name: destination.name, exact: true }).click()
+    await expectActiveDestination(destination.name, destination.copy)
+  }
+
+  const sidebar = page.locator(".merlin-shell-sidebar")
+  const sidebarBounds = await sidebar.boundingBox()
+  expect(sidebarBounds).not.toBeNull()
+  expect(Math.round(sidebarBounds!.width)).toBe(240)
+
+  await page.setViewportSize({ width: 760, height: 760 })
+  const overflow = await page.evaluate(() => ({
+    document: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    body: document.body.scrollWidth - document.body.clientWidth,
+  }))
+  expect(overflow.document).toBeLessThanOrEqual(0)
+  expect(overflow.body).toBeLessThanOrEqual(0)
+  const narrowSidebarBounds = await sidebar.boundingBox()
+  expect(narrowSidebarBounds).not.toBeNull()
+  expect(Math.round(narrowSidebarBounds!.width)).toBe(240)
+
+  const storage = await page.evaluate(() => ({
+    local: window.localStorage.length,
+    session: window.sessionStorage.length,
+  }))
+  expect(storage).toEqual({ local: 0, session: 0 })
+  expect(externalRequests).toEqual([])
+
+  const accessibility = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+    .analyze()
+  expect(accessibility.violations).toEqual([])
+  expect(consoleErrors).toEqual([])
+})

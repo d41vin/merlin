@@ -1,0 +1,93 @@
+.merlin-shell {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  min-height: 100vh;
+  background: var(--bg-canvas);
+}
+
+.merlin-shell-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--panel-padding);
+  width: 240px;
+  min-width: 240px;
+  padding: var(--panel-padding);
+  border-right: var(--border-width) solid var(--border-hairline);
+  background: var(--bg-surface-1);
+}
+
+.merlin-shell-brand {
+  margin: 0;
+  padding: 0 var(--panel-padding);
+}
+
+.merlin-shell-nav {
+  display: grid;
+  gap: 2px;
+  align-content: start;
+}
+
+.merlin-nav-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: var(--sidebar-item-height);
+  padding: 0 var(--panel-padding);
+  border: var(--border-width) solid transparent;
+  border-left: var(--active-indicator-width) solid transparent;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--text-secondary);
+  text-align: left;
+  letter-spacing: var(--tracking-control);
+  appearance: none;
+  cursor: pointer;
+}
+
+.merlin-nav-item:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.merlin-nav-item[aria-current="page"] {
+  border-left-color: var(--accent);
+  background: var(--bg-selected);
+  color: var(--text-primary);
+}
+
+.merlin-nav-item[aria-current="page"]:hover {
+  background: var(--bg-selected);
+}
+
+.merlin-shell-main {
+  display: grid;
+  align-content: start;
+  gap: var(--section-padding);
+  min-width: 0;
+  padding: var(--section-padding);
+}
+
+.merlin-shell-page {
+  display: grid;
+  gap: var(--section-padding);
+  min-width: 0;
+}
+
+.merlin-shell-status {
+  margin: 0;
+  max-width: 70ch;
+}
+
+.merlin-shell-unavailable {
+  display: grid;
+  gap: var(--panel-padding);
+  max-width: 70ch;
+  padding: var(--section-padding);
+  border: var(--border-width) solid var(--border-hairline);
+  border-radius: var(--radius-panel);
+  background: var(--bg-surface-1);
+}
+
+.merlin-shell-unavailable .merlin-section-title {
+  margin: 0;
+}

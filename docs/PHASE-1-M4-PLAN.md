@@ -4,6 +4,15 @@ Status: **Decisions M4-D1–M4-D6 approved 2026-11-26. Checkpoint 1 (M4.1) autho
 Checkpoints 2–6 not authorized.** This document does not authorize code outside the authorized
 checkpoint, dependency changes, migrations, IPC changes, or pushes.
 
+Status update 2026-11-28: The product owner authorized M4 Checkpoint 2 (M4.2) with the words
+"M4 Checkpoint 2 is authorized" and approved the execution envelope. Implementation is present in
+the working tree; source-level audit corrections were accepted. The required automated gates have
+since run and passed; exact commands and results are recorded in `BUILD-STATUS.md`. Manual Windows
+11 verification passed and the product owner accepted the checkpoint on 2026-11-28. The local
+commit boundary is `feat: add product shell and navigation`; no push is authorized. Checkpoints 3–6
+remain unauthorized. This note supersedes the "Checkpoints 2–6 not authorized" statements below
+for Checkpoint 2 only.
+
 Date: 2026-11-26
 
 Authoritative requirements:
@@ -66,6 +75,10 @@ any dependency, migration, IPC, or production-build-boundary change remain unaut
 | Existing layout persistence | Four-panel percentage `PanelLayout` used by `PanelProof`; separate from sidebar width and not modified by M4                                                                                                                                                                                                       |
 | Browser tests               | Chromium and WebView2 suites currently depend on proof-surface test IDs                                                                                                                                                                                                                                            |
 | Optimized harness           | Checkpoint 1 adds `vite.harness.config.ts`, which builds the shell and proof pages into a separate output directory; production `vite.config.ts` remains single-entry                                                                                                                                              |
+
+> **2026-11-28 baseline correction:** actual `HEAD` and `origin/main` are
+> `3da8bfcf2a3a74ee6ffb93b464f89e9fb46baee7`. The table above records the historical 2026-11-26
+> baseline. Checkpoint 1's commit `1cdb814` is present in `origin/main` history via `3da8bfc`.
 
 The finalization commit records the approved decisions in `docs/DECISIONS.md` (D-061–D-066), this
 plan, and the companion status documents. It contains no source, native, dependency, lockfile,
@@ -420,6 +433,10 @@ Each checkpoint is a candidate commit boundary. **Checkpoint 1 is authorized; Ch
 not authorized and must not be started without separate approval.** Do not push any checkpoint
 without separate authorization. Hosted CI is required for the final milestone commit.
 
+> **2026-11-28:** Checkpoint 2 is authorized; Checkpoints 3–6 remain unauthorized. No commit or
+> push is authorized for Checkpoint 2. This note supersedes the "Checkpoints 2–6 are not
+> authorized" sentence above for Checkpoint 2 only.
+
 Six checkpoints are retained because proof relocation, shell/navigation, sidebar behavior, minimal
 controls, cross-boundary integration, and closure each have a distinct acceptance gate and commit
 boundary. They are not forced: if implementation shows that two checkpoints cannot pass
@@ -430,6 +447,9 @@ independently, merge them and record why rather than shipping an unverified boun
 **Status: implemented and verified 2026-11-26. The authorized local commit is
 `test: relocate phase 0 browser proofs to harness`; it is not pushed.** This is the first
 authorized implementation task.
+
+> **2026-11-28 correction:** `1cdb814` is present in actual `origin/main` history via `3da8bfc`.
+> The earlier "not pushed" statement is superseded by the verified remote state.
 
 **Objective:** Preserve the Phase 0 proof gate before replacing the product surface, settle the
 optimized-harness mechanism, and add automated production/harness build-isolation guards.
@@ -496,6 +516,13 @@ evidence, and remaining limitations are recorded in `BUILD-STATUS.md` under "Pha
 documentation finalization and Checkpoint 1 (2026-11-26)".
 
 ### M4.2 — Navigation model, product shell, and honest destination states
+
+**Status 2026-11-28:** Authorized by the product owner ("M4 Checkpoint 2 is authorized") and
+execution envelope approved. Implementation is present in the working tree; source-level audit
+corrections were accepted. Every required automated gate passes; exact commands and results are
+recorded in `BUILD-STATUS.md`. Manual Windows 11 verification passed and the product owner accepted
+the checkpoint on 2026-11-28. The local commit boundary is `feat: add product shell and navigation`;
+no push is authorized.
 
 **Objective:** Replace the proof surface with a working shell and three reachable destinations.
 
@@ -917,6 +944,10 @@ Not authorized:
 - Phase 2 implementation.
 - Any dependency, migration, settings key, IPC command, capability, CSP, or production
   build-boundary change.
+
+> **2026-11-28 status update:** Checkpoint 2 is authorized; Checkpoints 3–6 remain unauthorized.
+> No commit or push is authorized for Checkpoint 2. The Checkpoint 1 push prohibition is
+> superseded by verified remote history: `1cdb814` is present in `origin/main` via `3da8bfc`.
 
 ## 17. Stop conditions
 
