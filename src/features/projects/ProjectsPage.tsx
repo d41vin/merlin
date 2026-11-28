@@ -7,6 +7,7 @@ import { Dialog } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { DocsBrowser } from "@/features/docs/DocsBrowser"
 import {
   docsRootLabel,
   PROJECT_STATUS_LABELS,
@@ -15,10 +16,14 @@ import {
 } from "@/projects/model"
 import { PROJECTS_UNAVAILABLE_DESCRIPTION } from "@/projects/copy"
 import { createProjectStore, type ProjectStore } from "@/projects/store"
+import type { DocsStore } from "@/docs/store"
 
 type DocsDialog = "confirm" | "create" | "choose" | null
 
-export function ProjectsPage({ store }: { store?: ProjectStore } = {}) {
+export function ProjectsPage({
+  store,
+  docsStore,
+}: { store?: ProjectStore; docsStore?: DocsStore } = {}) {
   const [projectStore] = useState(() => store ?? createProjectStore())
   if (projectStore.kind === "browser-unavailable") {
     return (
@@ -28,10 +33,10 @@ export function ProjectsPage({ store }: { store?: ProjectStore } = {}) {
       </div>
     )
   }
-  return <NativeProjectsPage store={projectStore} />
+  return <NativeProjectsPage store={projectStore} docsStore={docsStore} />
 }
 
-function NativeProjectsPage({ store }: { store: ProjectStore }) {
+function NativeProjectsPage({ store, docsStore }: { store: ProjectStore; docsStore?: DocsStore }) {
   const [projects, setProjects] = useState<ProjectSummary[] | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [detection, setDetection] = useState<DocsRootDetection | null>(null)
@@ -601,11 +606,20 @@ function NativeProjectsPage({ store }: { store: ProjectStore }) {
                     reachable again; Merlin does not treat absence as deletion.
                   </p>
                 ) : null}
-                {repositoryDocsConfigured ? (
-                  <p className="merlin-reading">
-                    Docs root registered. Document browsing, editing, and synchronization arrive in
-                    later Phase 2 milestones.
+                {docsRoot && docsRoot.status === "missing" ? (
+                  <p className="merlin-status" data-kind="warning" role="status">
+                    Docs root is missing at its registered location. Merlin does not treat absence
+                    as deletion and will not scan outside the confirmed root.
                   </p>
+                ) : null}
+                {docsRoot && docsRoot.status === "active" && docsRoot.available ? (
+                  <>
+                    <p className="merlin-reading">
+                      Browsing is read-only in this milestone. Merlin does not save, rename, delete,
+                      watch, or synchronize documents yet.
+                    </p>
+                    <DocsBrowser key={selected.id} projectId={selected.id} store={docsStore} />
+                  </>
                 ) : null}
               </>
             ) : (

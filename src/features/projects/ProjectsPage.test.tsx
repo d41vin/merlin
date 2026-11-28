@@ -176,8 +176,9 @@ describe("projects page", () => {
     expect(store.confirmDocsRoot).toHaveBeenCalledWith(existing.id, "docs")
     expect(
       screen.getByText(
-        "Docs root registered. Document browsing, editing, and synchronization arrive in later Phase 2 milestones.",
+        "Browsing is read-only in this milestone. Merlin does not save, rename, delete, watch, or synchronize documents yet.",
       ),
     ).toBeInTheDocument()
+    expect(screen.getByRole("region", { name: "Docs browser" })).toBeInTheDocument()
   })
 })

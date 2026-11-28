@@ -370,3 +370,185 @@
   border-color: transparent;
   background: transparent;
 }
+
+.merlin-docs-browser {
+  display: grid;
+  gap: var(--panel-padding);
+  min-width: 0;
+  padding-top: var(--section-padding);
+  border-top: var(--border-width) solid var(--border-hairline);
+}
+
+.merlin-docs-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--panel-padding);
+}
+
+.merlin-docs-toolbar .merlin-section-title {
+  margin: 0;
+}
+
+.merlin-docs-toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--panel-padding);
+}
+
+.merlin-docs-layout {
+  display: grid;
+  grid-template-columns: minmax(180px, 240px) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--section-padding);
+}
+
+.merlin-docs-navigation {
+  display: grid;
+  gap: var(--panel-padding);
+  min-width: 0;
+}
+
+.merlin-docs-recent {
+  display: grid;
+  gap: 2px;
+}
+
+.merlin-docs-recent-list {
+  display: grid;
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.merlin-docs-recent-button {
+  width: 100%;
+  padding: 3px 6px;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: var(--tracking-metadata);
+  text-align: left;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.merlin-docs-recent-button:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.merlin-docs-tree {
+  display: grid;
+  gap: 1px;
+  max-height: 420px;
+  overflow: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.merlin-docs-tree-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--sidebar-item-height);
+  border-left: var(--active-indicator-width) solid transparent;
+  border-radius: var(--radius-control);
+  color: var(--text-secondary);
+  cursor: pointer;
+  outline-offset: -2px;
+}
+
+.merlin-docs-tree-row:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.merlin-docs-tree-row:focus-visible {
+  outline: 2px solid var(--border-focus);
+}
+
+.merlin-docs-tree-row[aria-selected="true"] {
+  border-left-color: var(--accent);
+  background: var(--bg-selected);
+  color: var(--text-primary);
+}
+
+.merlin-docs-tree-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+}
+
+.merlin-docs-tree-meta {
+  margin-left: auto;
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: var(--tracking-metadata);
+}
+
+.merlin-docs-reader {
+  display: grid;
+  gap: var(--panel-padding);
+  min-width: 0;
+}
+
+.merlin-docs-reader-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--panel-padding);
+}
+
+.merlin-docs-reader-title {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.merlin-docs-document-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.merlin-docs-view-toggle {
+  display: flex;
+  gap: 2px;
+}
+
+.merlin-docs-source {
+  max-height: 520px;
+  overflow: auto;
+  margin: 0;
+  padding: var(--panel-padding);
+  border: var(--border-width) solid var(--border-hairline);
+  border-radius: var(--radius-control);
+  background: var(--bg-canvas);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.merlin-docs-preview {
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .merlin-docs-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

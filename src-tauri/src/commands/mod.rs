@@ -1,7 +1,9 @@
+pub mod docs;
 pub mod layout;
 pub mod projects;
 pub mod settings;
 
+pub use docs::{docs_document_read, docs_manifest_get, docs_manifest_scan};
 pub use layout::{preflight_get_layout, preflight_save_layout};
 pub use projects::{
     docs_root_confirm, docs_root_create, docs_root_detect, docs_root_skip, project_create,

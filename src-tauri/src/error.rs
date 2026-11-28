@@ -10,6 +10,8 @@ pub enum AppErrorCode {
     InvalidProject,
     InvalidRepository,
     InvalidDocsRoot,
+    InvalidDocsFile,
+    DocsManifest,
     ProjectStore,
     Database,
     Io,

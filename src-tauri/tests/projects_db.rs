@@ -68,7 +68,7 @@ fn v2_database_upgrades_to_v3_and_preserves_settings_and_history() {
             row.get(0)
         })
         .expect("count migrations");
-    assert_eq!(migration_count, 3);
+    assert_eq!(migration_count, 4);
     let preserved: String = connection
         .query_row(
             "SELECT value_json FROM settings WHERE key = 'custom.setting'",

@@ -135,7 +135,7 @@ fn v1_database_upgrades_through_current_migrations_without_changing_existing_dat
             row.get(0)
         })
         .expect("count migrations");
-    assert_eq!(migration_count, 3);
+    assert_eq!(migration_count, 4);
     let current_v1_history = connection
         .query_row(
             "SELECT version, name, applied_on, checksum FROM refinery_schema_history WHERE version = 1",
@@ -221,7 +221,7 @@ fn reopen_is_idempotent_and_preserves_existing_rows() {
             row.get(0)
         })
         .expect("count migrations after reopen");
-    assert_eq!(migration_count, 3);
+    assert_eq!(migration_count, 4);
     let reopened = connection
         .query_row(
             "SELECT value_json, updated_at FROM settings WHERE key = 'app.density.v1'",

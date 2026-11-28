@@ -236,6 +236,14 @@ P2-M2 in the same commit.
 
 ### P2-M2 — Docs manifest and read-only source browser
 
+**Status 2026-11-28:** Implemented and automatically verified under D-069. V4 adds the
+metadata-only Docs manifest. The confirmed Docs root is scanned only on explicit refresh; the
+tree, recent documents, sanitized preview, exact source mode, and fail-closed states are
+available. Path confinement, link rejection, encoding/BOM/CRLF preservation, scan limits,
+migration, restart persistence, Chromium, real WebView2, and accessibility gates pass. No file is
+written. Product-owner manual acceptance and hosted CI remain pending and are not inferred. The
+file policy and scan bounds are recorded in D-072.
+
 **Objective and user-visible outcome**
 
 A user can browse the confirmed Docs root as a file tree, see folders and Markdown files, and open
@@ -1150,9 +1158,11 @@ These require explicit resolution before the affected milestone:
 4. **Production attachment envelope.** The Phase 0 DPAPI/AES-GCM proof has no format version or
    context. Approve the versioned envelope, key lifecycle, recovery limits, and behavior when
    DPAPI is unavailable before P2-M9.
-5. **Docs file policy.** Approve extensions (`.md`, `.markdown`, `.mdx` source-only), maximum file
-   size, maximum manifest entries, encoding policy, and hidden-folder inclusion. Defaults must
-   fail loudly, not truncate.
+5. **Docs file policy.** Resolved by D-072 before P2-M2: `.md` and `.markdown` are previewable,
+   `.mdx` is source-only, other regular files are listed but not opened, the per-file read/hash cap
+   is 2 MiB, the manifest entry cap is 5,000, the scan depth cap is 32, UTF-8/UTF-8 BOM are
+   accepted, invalid UTF-8 is refused, hidden folders are included, `.git` internals are excluded,
+   and limit breaches fail the scan rather than truncating.
 6. **Backup enrollment default.** Confirm whether backup enrollment is automatic after Docs-root
    confirmation or an explicit user action. Either way, never create a repository folder without
    consent.

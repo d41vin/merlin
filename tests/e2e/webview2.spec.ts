@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, rmSync } from "node:fs"
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import path from "node:path"
 
 import AxeBuilder from "@axe-core/playwright"
@@ -493,7 +493,18 @@ test("project registration and docs-root confirmation persist through a native r
   prepareWebView2Artifacts()
   const repositoryDirectory = path.join(process.cwd(), "test-results", "webview2", "p2-repository")
   rmSync(repositoryDirectory, { recursive: true, force: true })
-  mkdirSync(path.join(repositoryDirectory, "docs"), { recursive: true })
+  const docsDirectory = path.join(repositoryDirectory, "docs")
+  mkdirSync(path.join(docsDirectory, "personal"), { recursive: true })
+  mkdirSync(path.join(docsDirectory, "diagrams"), { recursive: true })
+  mkdirSync(path.join(docsDirectory, ".git"), { recursive: true })
+  const guideSource = "# WebView2 guide\n\nA **safe** paragraph.\n"
+  const notesSource = "---\ntitle: Personal notes\n---\n\n# Notes\n\nKeep this source.\n"
+  const mdxSource = "import { Chart } from './Chart.js'\n\n# Chart\n\n<Chart value={1} />\n"
+  writeFileSync(path.join(docsDirectory, "guide.md"), guideSource)
+  writeFileSync(path.join(docsDirectory, "personal", "notes.md"), notesSource)
+  writeFileSync(path.join(docsDirectory, "diagrams", "flow.mdx"), mdxSource)
+  writeFileSync(path.join(docsDirectory, "asset.bin"), Buffer.from([0, 159, 146, 150]))
+  writeFileSync(path.join(docsDirectory, ".git", "config"), "[remote]\n\turl = not-a-document\n")
   let session: WebView2Session | undefined
   const consoleErrors: string[] = []
   const observeErrors = (page: Page) => {
@@ -545,6 +556,39 @@ test("project registration and docs-root confirmation persist through a native r
     await expect(docsDialog).toBeHidden()
     await expect(session.page.getByText("Docs root confirmed.")).toBeVisible()
     await expect(detail.getByText(/docs · Available/)).toBeVisible()
+
+    const docsBrowser = session.page.getByRole("region", { name: "Docs browser" })
+    await docsBrowser.getByRole("button", { name: "Refresh manifest" }).click()
+    await expect(docsBrowser.getByText(/Manifest refreshed\./)).toBeVisible()
+    await expect(docsBrowser.getByRole("treeitem", { name: "guide.md" })).toBeVisible()
+    await expect(docsBrowser.getByRole("treeitem", { name: "personal" })).toBeVisible()
+    await expect(docsBrowser.getByRole("treeitem", { name: "notes.md" })).toBeVisible()
+    await expect(docsBrowser.getByRole("treeitem", { name: "flow.mdx" })).toBeVisible()
+    await expect(docsBrowser.getByRole("treeitem", { name: /asset\.bin/ })).toBeVisible()
+    await expect(docsBrowser.getByRole("treeitem", { name: ".git" })).toHaveCount(0)
+
+    await docsBrowser.getByRole("treeitem", { name: "guide.md" }).click()
+    await expect(
+      docsBrowser.getByRole("heading", { level: 1, name: "WebView2 guide" }),
+    ).toBeVisible()
+    await docsBrowser.getByRole("button", { name: "Source" }).click()
+    expect(await docsBrowser.getByLabel("Document source").textContent()).toBe(guideSource)
+
+    await docsBrowser.getByRole("treeitem", { name: "notes.md" }).click()
+    await expect(docsBrowser.getByText(/Source fallback for frontmatter/)).toBeVisible()
+    expect(await docsBrowser.getByLabel("Document source").textContent()).toBe(notesSource)
+
+    await docsBrowser.getByRole("treeitem", { name: "flow.mdx" }).click()
+    await expect(docsBrowser.getByText(/MDX is shown as inert source/)).toBeVisible()
+    expect(await docsBrowser.getByLabel("Document source").textContent()).toBe(mdxSource)
+
+    await docsBrowser.getByRole("treeitem", { name: /asset\.bin/ }).click()
+    await expect(docsBrowser.getByText(/not a Markdown document/)).toBeVisible()
+
+    const docsAccessibility = await new AxeBuilder({ page: session.page })
+      .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+      .analyze()
+    expect(docsAccessibility.violations).toEqual([])
     expect(
       await session.page.evaluate(() => ({
         local: window.localStorage.length,
@@ -561,6 +605,9 @@ test("project registration and docs-root confirmation persist through a native r
     const restartedDetail = session.page.getByRole("region", { name: "Project registration" })
     await expect(restartedDetail.getByText(repositoryDirectory)).toBeVisible()
     await expect(restartedDetail.getByText(/docs · Available/)).toBeVisible()
+    const restartedDocs = session.page.getByRole("region", { name: "Docs browser" })
+    await expect(restartedDocs.getByRole("treeitem", { name: "guide.md" })).toBeVisible()
+    await expect(restartedDocs.getByRole("button", { name: "Refresh manifest" })).toBeVisible()
     expect(consoleErrors).toEqual([])
   } finally {
     if (session) await stopWebView2(session)

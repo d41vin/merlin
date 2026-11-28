@@ -88,7 +88,7 @@ pub enum DocsRootKind {
 }
 
 impl DocsRootKind {
-    fn parse(value: &str) -> Option<Self> {
+    pub(crate) fn parse(value: &str) -> Option<Self> {
         match value {
             "repository" => Some(Self::Repository),
             "project_store" => Some(Self::ProjectStore),
@@ -113,7 +113,7 @@ pub enum DocsRootStatus {
 }
 
 impl DocsRootStatus {
-    fn parse(value: &str) -> Option<Self> {
+    pub(crate) fn parse(value: &str) -> Option<Self> {
         match value {
             "active" => Some(Self::Active),
             "skipped" => Some(Self::Skipped),

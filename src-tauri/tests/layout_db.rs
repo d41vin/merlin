@@ -63,7 +63,7 @@ fn migration_restart_and_layout_round_trip_are_persistent_and_idempotent() {
             row.get(0)
         })
         .expect("two recorded migrations");
-    assert_eq!(migration_count, 3);
+    assert_eq!(migration_count, 4);
     for table in ["settings", "sync_operations"] {
         let count: i64 = connection
             .query_row(

@@ -1,3 +1,4 @@
+pub mod docs;
 pub mod path;
 pub mod projects;
 pub mod settings;
