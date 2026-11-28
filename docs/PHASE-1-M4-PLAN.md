@@ -1,11 +1,11 @@
 # Phase 1 Milestone 4 — Application Shell, Navigation, Minimal Common Controls, and Phase 1 Closure
 
 Status: **Decisions M4-D1–M4-D6 approved 2026-11-26. Checkpoint 1 (M4.1) authorized 2026-11-26;
-Checkpoint 2 (M4.2) authorized 2026-11-28 and accepted 2026-11-28. Checkpoints 3 (M4.3) and 4
-(M4.4) implemented and automatically verified under the autonomous operating mandate (D-069);
-manual Windows 11 acceptance is pending. Checkpoints 5–6 proceed under D-069 without separate
-approval.** This document does not authorize dependency changes, migrations, IPC changes, or
-pushes.
+Checkpoint 2 (M4.2) authorized 2026-11-28 and accepted 2026-11-28. Checkpoints 3 (M4.3), 4
+(M4.4), and 5 (M4.5) implemented and automatically verified under the autonomous operating mandate
+(D-069); manual Windows 11 acceptance is pending. Checkpoint 6 proceeds under D-069 without
+separate approval.** This document does not authorize dependency changes, migrations, IPC changes,
+or pushes.
 
 Status update 2026-11-28: The product owner authorized M4 Checkpoint 2 (M4.2) with the words
 "M4 Checkpoint 2 is authorized" and approved the execution envelope. Implementation is present in
@@ -24,6 +24,11 @@ Status update 2026-11-28: Checkpoint 4 (M4.4) is implemented and automatically v
 Windows 11 acceptance is pending and is not inferred. The local commit boundary is
 `feat: add minimal common controls`; no push is authorized. The controls harness is test-only and
 included in the optimized harness under D-070; production remains single-entry.
+
+Status update 2026-11-28: Checkpoint 5 (M4.5) is implemented and automatically verified, including
+the real WebView2 development and optimized-harness suites. Manual Windows 11 acceptance is pending
+and is not inferred. The local commit boundary is `test: verify phase 1 shell integration`; no push
+is authorized.
 
 Date: 2026-11-26
 
@@ -445,13 +450,13 @@ feature-guard branch to the product application.
 ## 9. Checkpoints
 
 Each checkpoint is a candidate commit boundary. Checkpoint 1 and Checkpoint 2 were separately
-authorized; Checkpoints 3 and 4 are implemented and verified under D-069. Checkpoints 5–6 proceed
-under D-069 without separate approval. Do not push any checkpoint without separate authorization.
-Hosted CI is required for the final milestone commit.
+authorized; Checkpoints 3–5 are implemented and verified under D-069. Checkpoint 6 proceeds under
+D-069 without separate approval. Do not push any checkpoint without separate authorization. Hosted
+CI is required for the final milestone commit.
 
 > **2026-11-28:** D-069 supersedes the per-checkpoint authorization gate. Checkpoint 2 was accepted;
-> Checkpoints 3–4 are implemented and automatically verified with manual acceptance pending.
-> Checkpoints 5–6 continue autonomously within the approved milestone scope. The local commit
+> Checkpoints 3–5 are implemented and automatically verified with manual acceptance pending.
+> Checkpoint 6 continues autonomously within the approved milestone scope. The local commit
 > prohibition for Checkpoint 2 is superseded by its accepted commit `4bcab98`.
 
 Six checkpoints are retained because proof relocation, shell/navigation, sidebar behavior, minimal
@@ -708,6 +713,12 @@ wrappers; dialog focus leaks; scope creep into deferred controls. Mitigate with 
 **Expected commit boundary:** `feat: add minimal common controls`.
 
 ### M4.5 — Shell-era Chromium, WebView2, and native integration
+
+**Status 2026-11-28:** Implemented and automatically verified under D-069. The local commit boundary
+is `test: verify phase 1 shell integration`; no push is authorized. Product-owner manual verification
+is pending and is not inferred. Real WebView2 development and optimized-harness suites pass with
+shell startup, settings IPC, sidebar session bounds/reset, unchanged panel layout, proof-harness
+persistence/restart, and reduced-motion/density application.
 
 **Objective:** Prove the shell through the real application boundaries and separate existing
 persisted-state checks from new sidebar checks.

@@ -20,6 +20,20 @@ async function layout(page: Page) {
   }
 }
 
+async function expectShellReady(page: Page) {
+  await expect(page.getByRole("heading", { level: 1, name: "Overview" })).toBeVisible({
+    timeout: 90_000,
+  })
+  await expect(page.getByText(/technical preflight|not a Merlin product screen/i)).toHaveCount(0)
+  await expect(page.getByTestId("control-state-proof")).toHaveCount(0)
+}
+
+async function sidebarWidth(page: Page) {
+  const bounds = await page.locator(".merlin-shell-sidebar").boundingBox()
+  if (!bounds) throw new Error("Sidebar has no rendered bounds")
+  return Math.round(bounds.width)
+}
+
 async function waitForNativeReady(page: Page) {
   await expect(page.getByTestId("layout-status")).toHaveText("SQLite layout ready", {
     timeout: 90_000,
@@ -84,6 +98,44 @@ test("real WebView2 interactions and SQLite persistence survive a native process
   try {
     session = await startWebView2()
     observePage(session.page)
+    await expectShellReady(session.page)
+    await expect(session.page.locator("html")).toHaveAttribute("data-theme", "merlin-dark")
+    await expect(session.page.locator("html")).toHaveAttribute("data-density", "default")
+    await expect(session.page.locator("html")).not.toHaveAttribute("data-force-reduced-motion")
+    await expect(session.page.getByRole("navigation", { name: "Primary navigation" })).toBeVisible()
+    await expect(
+      session.page.getByRole("navigation", { name: "Primary navigation" }).getByRole("button"),
+    ).toHaveCount(3)
+    expect(await sidebarWidth(session.page)).toBe(240)
+    const shellHandle = session.page.getByRole("separator", { name: "Resize sidebar" })
+    await expect(shellHandle).toBeVisible()
+    await shellHandle.focus()
+    await expect(shellHandle).toBeFocused()
+    await session.page.keyboard.press("End")
+    await expect.poll(() => sidebarWidth(session!.page)).toBe(320)
+    await session.page.keyboard.press("Home")
+    await expect.poll(() => sidebarWidth(session!.page)).toBe(200)
+    await session.page.keyboard.press("ArrowRight")
+    await expect.poll(() => sidebarWidth(session!.page)).toBeGreaterThan(200)
+    const shellWidth = await sidebarWidth(session.page)
+    await session.page.getByRole("button", { name: "Projects", exact: true }).click()
+    await expect(session.page.getByRole("heading", { level: 1, name: "Projects" })).toBeVisible()
+    expect(await sidebarWidth(session.page)).toBe(shellWidth)
+    expect(await invokeNative<unknown>(session.page, "preflight_get_layout")).toBeNull()
+    expect(
+      await session.page.evaluate(() => ({
+        local: window.localStorage.length,
+        session: window.sessionStorage.length,
+      })),
+    ).toEqual({ local: 0, session: 0 })
+    await session.page.reload()
+    await expectShellReady(session.page)
+    await expect.poll(() => sidebarWidth(session!.page)).toBe(240)
+    const shellAccessibility = await new AxeBuilder({ page: session.page })
+      .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+      .analyze()
+    expect(shellAccessibility.violations).toEqual([])
+
     await session.page.goto(proofHarnessUrl(session.page.url()))
     await waitForNativeReady(session.page)
     expect(
@@ -211,13 +263,19 @@ test("real WebView2 interactions and SQLite persistence survive a native process
 
     session = await restartWebView2(session)
     observePage(session.page)
-    await session.page.goto(proofHarnessUrl(session.page.url()))
-    await waitForNativeReady(session.page)
-    expect(await layout(session.page)).toEqual(persisted)
+    await expectShellReady(session.page)
+    await expect(session.page.locator("html")).toHaveAttribute("data-density", "compact")
+    await expect(session.page.locator("html")).toHaveAttribute("data-force-reduced-motion", "true")
+    await expect(session.page.locator("html")).toHaveAttribute("data-theme", "merlin-dark")
+    expect(await sidebarWidth(session.page)).toBe(240)
     const restoredSettings = await invokeNative<ApplicationSettings>(session.page, "settings_get")
     expect(restoredSettings.density).toBe("compact")
     expect(restoredSettings.forceReducedMotion).toBe(true)
     expect(restoredSettings.usedDefaults).toBe(false)
+
+    await session.page.goto(proofHarnessUrl(session.page.url()))
+    await waitForNativeReady(session.page)
+    expect(await layout(session.page)).toEqual(persisted)
     await expect(session.page.locator("html")).toHaveAttribute("data-density", "compact")
     await expect(session.page.locator("html")).toHaveAttribute("data-force-reduced-motion", "true")
     await expect(session.page.locator("html")).toHaveAttribute("data-theme", "merlin-dark")
@@ -328,6 +386,28 @@ test("optimized harness launches packaged assets and typed SQLite IPC", async ()
           (window as Window & { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__ !== undefined,
       ),
     ).toBe(true)
+    await expectShellReady(session.page)
+    await expect(session.page.locator("html")).toHaveAttribute("data-theme", "merlin-dark")
+    await expect(session.page.locator("html")).toHaveAttribute("data-density", "default")
+    await expect(session.page.locator("html")).not.toHaveAttribute("data-force-reduced-motion")
+    await expect(session.page.locator("html")).toHaveCSS("color-scheme", "dark")
+    await expect(session.page.getByRole("navigation", { name: "Primary navigation" })).toBeVisible()
+    await expect(
+      session.page.getByRole("navigation", { name: "Primary navigation" }).getByRole("button"),
+    ).toHaveCount(3)
+    expect(await sidebarWidth(session.page)).toBe(240)
+    const shellHandle = session.page.getByRole("separator", { name: "Resize sidebar" })
+    await expect(shellHandle).toBeVisible()
+    await session.page.getByRole("button", { name: "Resources", exact: true }).click()
+    await expect(session.page.getByRole("heading", { level: 1, name: "Resources" })).toBeVisible()
+    expect(await sidebarWidth(session.page)).toBe(240)
+    expect(await invokeNative<unknown>(session.page, "preflight_get_layout")).toBeNull()
+    expect(await session.page.evaluate(() => window.localStorage.length)).toBe(0)
+    const shellAccessibility = await new AxeBuilder({ page: session.page })
+      .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+      .analyze()
+    expect(shellAccessibility.violations).toEqual([])
+
     await session.page.goto(proofHarnessUrl(session.page.url()))
     await expect(session.page.locator("body")).toHaveAttribute(
       "data-harness-entry",
@@ -378,6 +458,16 @@ test("optimized harness launches packaged assets and typed SQLite IPC", async ()
 
     session = await restartWebView2(session)
     observeErrors(session.page)
+    await expectShellReady(session.page)
+    await expect(session.page.locator("html")).toHaveAttribute("data-density", "compact")
+    await expect(session.page.locator("html")).toHaveAttribute("data-force-reduced-motion", "true")
+    await expect(session.page.locator("html")).toHaveAttribute("data-theme", "merlin-dark")
+    expect(await sidebarWidth(session.page)).toBe(240)
+    const settings = await invokeNative<ApplicationSettings>(session.page, "settings_get")
+    expect(settings.density).toBe("compact")
+    expect(settings.forceReducedMotion).toBe(true)
+    expect(settings.usedDefaults).toBe(false)
+
     await session.page.goto(proofHarnessUrl(session.page.url()))
     await expect(session.page.locator("body")).toHaveAttribute(
       "data-harness-entry",
@@ -385,10 +475,6 @@ test("optimized harness launches packaged assets and typed SQLite IPC", async ()
     )
     await waitForNativeReady(session.page)
     expect(await layout(session.page)).toEqual(saved)
-    const settings = await invokeNative<ApplicationSettings>(session.page, "settings_get")
-    expect(settings.density).toBe("compact")
-    expect(settings.forceReducedMotion).toBe(true)
-    expect(settings.usedDefaults).toBe(false)
     await expect(session.page.locator("html")).toHaveAttribute("data-density", "compact")
     await expect(session.page.locator("html")).toHaveAttribute("data-force-reduced-motion", "true")
     await expect(session.page.locator("html")).toHaveAttribute("data-theme", "merlin-dark")
