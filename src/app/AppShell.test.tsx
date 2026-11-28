@@ -89,6 +89,22 @@ describe("application shell", () => {
     ).toEqual([overview])
   })
 
+  it("exposes a named, keyboard-focusable sidebar resize handle", async () => {
+    render(<AppShell />)
+    await waitFor(() => expect(document.documentElement.dataset.density).toBe("default"))
+
+    const handle = screen.getByRole("separator", { name: "Resize sidebar" })
+    expect(handle).toHaveAttribute("tabindex", "0")
+    expect(handle).toHaveAttribute("aria-orientation", "vertical")
+    expect(handle).toHaveAttribute("aria-controls", "merlin-sidebar")
+    expect(handle).toHaveAttribute("data-slot", "resizable-handle")
+
+    handle.focus()
+    expect(handle).toHaveFocus()
+    expect(window.localStorage.length).toBe(0)
+    expect(window.sessionStorage.length).toBe(0)
+  })
+
   it("applies a successful settings load without showing a status message", async () => {
     loadMock.mockResolvedValue({
       version: 1,

@@ -1,17 +1,23 @@
 # Phase 1 Milestone 4 — Application Shell, Navigation, Minimal Common Controls, and Phase 1 Closure
 
 Status: **Decisions M4-D1–M4-D6 approved 2026-11-26. Checkpoint 1 (M4.1) authorized 2026-11-26;
-Checkpoints 2–6 not authorized.** This document does not authorize code outside the authorized
-checkpoint, dependency changes, migrations, IPC changes, or pushes.
+Checkpoint 2 (M4.2) authorized 2026-11-28 and accepted 2026-11-28. Checkpoint 3 (M4.3) implemented
+and automatically verified under the autonomous operating mandate (D-069); manual Windows 11
+acceptance is pending. Checkpoints 4–6 proceed under D-069 without separate approval.** This
+document does not authorize dependency changes, migrations, IPC changes, or pushes.
 
 Status update 2026-11-28: The product owner authorized M4 Checkpoint 2 (M4.2) with the words
 "M4 Checkpoint 2 is authorized" and approved the execution envelope. Implementation is present in
 the working tree; source-level audit corrections were accepted. The required automated gates have
 since run and passed; exact commands and results are recorded in `BUILD-STATUS.md`. Manual Windows
 11 verification passed and the product owner accepted the checkpoint on 2026-11-28. The local
-commit boundary is `feat: add product shell and navigation`; no push is authorized. Checkpoints 3–6
-remain unauthorized. This note supersedes the "Checkpoints 2–6 not authorized" statements below
-for Checkpoint 2 only.
+commit boundary is `feat: add product shell and navigation`; no push is authorized.
+
+Status update 2026-11-28: The product owner adopted the autonomous operating mandate in
+`AGENTS.md` and directed the primary agent to choose and complete unblocked slices without
+per-checkpoint approval (D-069). Checkpoint 3 (M4.3) is implemented and automatically verified;
+manual Windows 11 acceptance is pending and is not inferred. The local commit boundary is
+`feat: add resizable session sidebar`; no push is authorized. Checkpoints 4–6 proceed under D-069.
 
 Date: 2026-11-26
 
@@ -429,13 +435,15 @@ feature-guard branch to the product application.
 
 ## 9. Checkpoints
 
-Each checkpoint is a candidate commit boundary. **Checkpoint 1 is authorized; Checkpoints 2–6 are
-not authorized and must not be started without separate approval.** Do not push any checkpoint
-without separate authorization. Hosted CI is required for the final milestone commit.
+Each checkpoint is a candidate commit boundary. Checkpoint 1 and Checkpoint 2 were separately
+authorized; Checkpoint 3 is implemented and verified under D-069. Checkpoints 4–6 proceed under
+D-069 without separate approval. Do not push any checkpoint without separate authorization.
+Hosted CI is required for the final milestone commit.
 
-> **2026-11-28:** Checkpoint 2 is authorized; Checkpoints 3–6 remain unauthorized. No commit or
-> push is authorized for Checkpoint 2. This note supersedes the "Checkpoints 2–6 are not
-> authorized" sentence above for Checkpoint 2 only.
+> **2026-11-28:** D-069 supersedes the per-checkpoint authorization gate. Checkpoint 2 was accepted;
+> Checkpoint 3 is implemented and automatically verified with manual acceptance pending. Checkpoints
+> 4–6 continue autonomously within the approved milestone scope. The local commit prohibition for
+> Checkpoint 2 is superseded by its accepted commit `4bcab98`.
 
 Six checkpoints are retained because proof relocation, shell/navigation, sidebar behavior, minimal
 controls, cross-boundary integration, and closure each have a distinct acceptance gate and commit
@@ -576,6 +584,11 @@ focus assertions, and harness import checks.
 
 ### M4.3 — Session-only sidebar resize and accessible states
 
+**Status 2026-11-28:** Implemented and automatically verified under D-069. The local commit boundary
+is `feat: add resizable session sidebar`; no push is authorized. Manual Windows 11 acceptance is
+pending and is not inferred. All Chromium checks for pointer drag, keyboard resize, session
+retention, window-resize bounds, reload reset, focus visibility, and storage absence pass.
+
 **Objective:** Implement the documented sidebar geometry and interaction without persistence.
 
 **Scope:**
@@ -599,6 +612,9 @@ storage, a second resizable implementation, arbitrary destination rearrangement.
 
 - Replace the fixed sidebar container with the UI SDK resizable group.
 - Add constants for default/min/max width.
+- Supply a two-panel initial percentage layout derived from the measured viewport, because the
+  installed UI SDK resolves a pixel `defaultSize` against the panels' pre-layout widths during
+  startup under reduced motion; the initial percentage preserves the 240px session default.
 - Add pointer and keyboard resize tests.
 - Test width retention across destination changes.
 - Test full reload and process restart return to 240px.
@@ -937,7 +953,7 @@ On 2026-11-26 the user approved:
 - **Checkpoint 1 only** (`test: relocate phase 0 browser proofs to harness`), including permission
   to run its local verification commands and commit it locally.
 
-Not authorized:
+Not authorized by the 2026-11-26 approval:
 
 - Checkpoints 2–6.
 - Pushing the Checkpoint 1 commit.
@@ -945,9 +961,12 @@ Not authorized:
 - Any dependency, migration, settings key, IPC command, capability, CSP, or production
   build-boundary change.
 
-> **2026-11-28 status update:** Checkpoint 2 is authorized; Checkpoints 3–6 remain unauthorized.
-> No commit or push is authorized for Checkpoint 2. The Checkpoint 1 push prohibition is
-> superseded by verified remote history: `1cdb814` is present in `origin/main` via `3da8bfc`.
+> **2026-11-28 status update:** D-069 supersedes the per-checkpoint authorization gates.
+> Checkpoint 2 was separately authorized and accepted. Checkpoint 3 is implemented and verified
+> under D-069 with manual acceptance pending. Checkpoints 4–6 and subsequent roadmap milestones
+> proceed autonomously within the accepted product requirements. Push remains unauthorized. The
+> Checkpoint 1 push prohibition is superseded by verified remote history: `1cdb814` is present in
+> `origin/main` via `3da8bfc`.
 
 ## 17. Stop conditions
 

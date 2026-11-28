@@ -71,6 +71,12 @@ async function layout(page: Page) {
   }
 }
 
+async function sidebarWidth(page: Page) {
+  const bounds = await page.locator(".merlin-shell-sidebar").boundingBox()
+  if (!bounds) throw new Error("Sidebar has no rendered bounds")
+  return Math.round(bounds.width)
+}
+
 async function waitForProofs(page: Page) {
   await expect(page.locator(".merlin-fixture-row[data-result='pass']")).toHaveCount(
     MARKDOWN_FIXTURES.length,
@@ -660,7 +666,9 @@ test("product shell exposes three honest destinations with accessible navigation
   expect(overflow.body).toBeLessThanOrEqual(0)
   const narrowSidebarBounds = await sidebar.boundingBox()
   expect(narrowSidebarBounds).not.toBeNull()
-  expect(Math.round(narrowSidebarBounds!.width)).toBe(240)
+  const narrowSidebarWidth = Math.round(narrowSidebarBounds!.width)
+  expect(narrowSidebarWidth).toBeGreaterThanOrEqual(200)
+  expect(narrowSidebarWidth).toBeLessThanOrEqual(320)
 
   const storage = await page.evaluate(() => ({
     local: window.localStorage.length,
@@ -668,6 +676,177 @@ test("product shell exposes three honest destinations with accessible navigation
   }))
   expect(storage).toEqual({ local: 0, session: 0 })
   expect(externalRequests).toEqual([])
+
+  const accessibility = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+    .analyze()
+  expect(accessibility.violations).toEqual([])
+  expect(consoleErrors).toEqual([])
+})
+
+test("sidebar resizes by pointer and keyboard within session bounds and resets on reload", async ({
+  page,
+}) => {
+  const consoleErrors: string[] = []
+  page.on("console", (message) => {
+    if (message.type() === "error") consoleErrors.push(message.text())
+  })
+  await page.addInitScript(() => {
+    window.localStorage.clear()
+    window.sessionStorage.clear()
+  })
+
+  await page.goto("/")
+  await expect(page.getByRole("heading", { level: 1, name: "Overview" })).toBeVisible()
+  const handle = page.getByRole("separator", { name: "Resize sidebar" })
+  await expect(handle).toBeVisible()
+  await expect(handle).toHaveAttribute("data-slot", "resizable-handle")
+  expect(await sidebarWidth(page)).toBe(240)
+
+  const navigation = page.getByRole("navigation", { name: "Primary navigation" })
+  const overview = navigation.getByRole("button", { name: "Overview", exact: true })
+  const projects = navigation.getByRole("button", { name: "Projects", exact: true })
+  const activeStyle = await overview.evaluate((element) => {
+    const style = getComputedStyle(element)
+    return {
+      height: style.height,
+      color: style.color,
+      backgroundColor: style.backgroundColor,
+      borderLeftColor: style.borderLeftColor,
+      borderLeftWidth: style.borderLeftWidth,
+    }
+  })
+  expect(activeStyle).toMatchObject({
+    height: "28px",
+    color: "rgb(242, 244, 245)",
+    backgroundColor: "rgb(42, 48, 54)",
+    borderLeftColor: "rgb(196, 98, 45)",
+    borderLeftWidth: "2px",
+  })
+
+  await projects.hover()
+  await expect.poll(() => projects.evaluate((element) => element.matches(":hover"))).toBe(true)
+  const hoveredStyle = await projects.evaluate((element) => {
+    const style = getComputedStyle(element)
+    return {
+      height: style.height,
+      color: style.color,
+      backgroundColor: style.backgroundColor,
+      borderLeftColor: style.borderLeftColor,
+    }
+  })
+  expect(hoveredStyle).toMatchObject({
+    height: "28px",
+    color: "rgb(242, 244, 245)",
+    backgroundColor: "rgb(42, 48, 54)",
+    borderLeftColor: "rgba(0, 0, 0, 0)",
+  })
+  await page.mouse.move(0, 0)
+
+  await tabToElement(page, handle)
+  await expect(handle).toBeFocused()
+  await expect
+    .poll(() => handle.evaluate((element) => element.matches(":focus-visible")))
+    .toBe(true)
+  const focusRing = await handle.evaluate((element) => {
+    const style = getComputedStyle(element)
+    return {
+      outlineColor: style.outlineColor,
+      outlineWidth: style.outlineWidth,
+      outlineStyle: style.outlineStyle,
+      outlineOffset: style.outlineOffset,
+    }
+  })
+  expect(focusRing).toMatchObject({
+    outlineColor: "rgb(217, 119, 66)",
+    outlineWidth: "2px",
+    outlineStyle: "solid",
+    outlineOffset: "2px",
+  })
+  const handleLine = await handle.evaluate(
+    (element) => getComputedStyle(element, "::after").borderLeftColor,
+  )
+  expect(handleLine).toBe("rgb(137, 148, 159)")
+
+  await page.keyboard.press("End")
+  await expect.poll(() => sidebarWidth(page)).toBe(320)
+  expect(handle).toBeFocused()
+  await page.keyboard.press("Home")
+  await expect.poll(() => sidebarWidth(page)).toBe(200)
+  await page.keyboard.press("ArrowRight")
+  await expect.poll(() => sidebarWidth(page)).toBeGreaterThan(200)
+  const keyboardWidth = await sidebarWidth(page)
+  expect(keyboardWidth).toBeLessThanOrEqual(320)
+  expect(handle).toBeFocused()
+
+  await projects.click()
+  await expect(page.getByRole("heading", { level: 1, name: "Projects" })).toBeVisible()
+  expect(await sidebarWidth(page)).toBe(keyboardWidth)
+  await navigation.getByRole("button", { name: "Resources", exact: true }).click()
+  await expect(page.getByRole("heading", { level: 1, name: "Resources" })).toBeVisible()
+  expect(await sidebarWidth(page)).toBe(keyboardWidth)
+
+  const initialBounds = await handle.boundingBox()
+  expect(initialBounds).not.toBeNull()
+  await page.mouse.move(
+    initialBounds!.x + initialBounds!.width / 2,
+    initialBounds!.y + initialBounds!.height / 2,
+  )
+  await page.mouse.down()
+  await page.mouse.move(
+    initialBounds!.x + initialBounds!.width / 2 + 400,
+    initialBounds!.y + initialBounds!.height / 2,
+    { steps: 10 },
+  )
+  await page.mouse.up()
+  await expect.poll(() => sidebarWidth(page)).toBe(320)
+
+  const maximumBounds = await handle.boundingBox()
+  expect(maximumBounds).not.toBeNull()
+  await page.mouse.move(
+    maximumBounds!.x + maximumBounds!.width / 2,
+    maximumBounds!.y + maximumBounds!.height / 2,
+  )
+  await page.mouse.down()
+  await page.mouse.move(
+    maximumBounds!.x + maximumBounds!.width / 2 - 400,
+    maximumBounds!.y + maximumBounds!.height / 2,
+    { steps: 10 },
+  )
+  await page.mouse.up()
+  await expect.poll(() => sidebarWidth(page)).toBe(200)
+
+  await page.setViewportSize({ width: 760, height: 760 })
+  await expect.poll(() => sidebarWidth(page)).toBeGreaterThanOrEqual(200)
+  const resizedWidth = await sidebarWidth(page)
+  expect(resizedWidth).toBeLessThanOrEqual(320)
+
+  await page.setViewportSize({ width: 1280, height: 1000 })
+  await expect.poll(() => sidebarWidth(page)).toBeLessThanOrEqual(320)
+  const grownWidth = await sidebarWidth(page)
+  expect(grownWidth).toBeGreaterThanOrEqual(200)
+  await page.setViewportSize({ width: 760, height: 760 })
+  await expect.poll(() => sidebarWidth(page)).toBeGreaterThanOrEqual(200)
+  const restoredWidth = await sidebarWidth(page)
+  expect(restoredWidth).toBeLessThanOrEqual(320)
+  const overflow = await page.evaluate(() => ({
+    document: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    body: document.body.scrollWidth - document.body.clientWidth,
+  }))
+  expect(overflow.document).toBeLessThanOrEqual(0)
+  expect(overflow.body).toBeLessThanOrEqual(0)
+  expect(
+    await page.evaluate(() => ({
+      local: window.localStorage.length,
+      session: window.sessionStorage.length,
+    })),
+  ).toEqual({ local: 0, session: 0 })
+
+  await page.reload()
+  await expect(page.getByRole("heading", { level: 1, name: "Overview" })).toBeVisible()
+  await expect.poll(() => sidebarWidth(page)).toBe(240)
+  expect(await page.evaluate(() => window.localStorage.length)).toBe(0)
+  expect(await page.evaluate(() => window.sessionStorage.length)).toBe(0)
 
   const accessibility = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])

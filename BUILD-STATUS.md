@@ -6,16 +6,19 @@ Last updated: 2026-11-28
 
 - **Phase 1, Milestone 4, Checkpoint 2 (M4.2)** is complete. Every required automated gate passes, manual Windows 11 verification passed, and the product owner accepted the checkpoint on 2026-11-28. It is committed locally as `feat: add product shell and navigation`; it is not pushed.
 - M4.2 scope is the product shell, typed three-destination navigation, `PrimaryNavigation`, `PageHeader`, `StatusMessage`, `UnavailableState`, the three honest destination pages, a fixed 240px sidebar, `shell.css`, and settings load/apply in `AppShell`. Sidebar resizing, common controls, proof-harness changes, settings UI, routing, and persistence remain out of scope for M4.2.
-- **Phase 1, Milestone 4, Checkpoint 3 (M4.3)** is in progress: the session-only resizable sidebar is implemented in the working tree but is not yet verified or committed. No manual acceptance has been requested or inferred.
+- **Phase 1, Milestone 4, Checkpoint 3 (M4.3)** is implemented and every required automated gate passes. The local commit boundary is `feat: add resizable session sidebar`; it is not pushed. Manual Windows 11 verification and product-owner acceptance are **pending** and are not inferred.
+- M4.3 adds the UI SDK resizable sidebar at 240px default with 200–320px pixel bounds, a named keyboard-operable resize handle, 28px navigation items with a 2px active indicator, hover/selected/focus states, session retention across destination changes, and reset to 240px on reload. No width persistence, settings key, IPC, migration, or browser storage is added.
 - The development workflow is one primary agent (`merlin`), optional read-only support agents, and local commits at verified slice boundaries. Workflow commit: `b81ccfca35a76bbe7dfae9c84542d0812c04ef73` (`chore: simplify opencode development workflow`).
-- Branch `main`. Before this documentation commit, `HEAD` is `4bcab98` (`feat: add product shell and navigation`); `origin/main` is `3da8bfcf2a3a74ee6ffb93b464f89e9fb46baee7`. The three local commits ahead of the remote are `b81ccfc`, `5c216ad`, and `4bcab98`.
-- No push of any local work has occurred.
+- Branch `main`. Before this slice commit, `HEAD` is `caf73a6` (`docs: adopt autonomous operating mandate`); `origin/main` is `3da8bfcf2a3a74ee6ffb93b464f89e9fb46baee7`. The four local commits ahead of the remote are `b81ccfc`, `5c216ad`, `4bcab98`, and `caf73a6`; this slice adds a fifth. No push of any local work has occurred.
 
 ## Next
 
+- Complete M4.3 manual Windows 11 verification when the product owner is available; record acceptance separately. Continue without blocking on it.
+- Implement **M4.4 — minimal common controls and harness**: Input, Textarea, Label, and Dialog over installed Base UI/native primitives, the dev-only controls harness, focused keyboard/focus/ARIA tests, and theme/token validation.
+- Then implement **M4.5 — shell-era Chromium, WebView2, and native integration**, followed by **M4.6 — Phase 1 closure verification and documentation**.
 - Continue autonomous implementation of Merlin using the accepted product specifications, architecture, decisions, and roadmap as the source of truth.
 - The primary `merlin` agent owns engineering execution. Read `AGENTS.md`, relevant product documentation, `docs/DECISIONS.md`, and this file before continuing.
-- Independently select the next unblocked vertical slice based on dependencies, technical soundness, and overall product completeness. M4.3 is the next planned checkpoint, but implementation order may be adjusted when technically justified.
+- Independently select the next unblocked vertical slice based on dependencies, technical soundness, and overall product completeness; implementation order may be adjusted when technically justified.
 - Make ordinary technical, architectural, implementation, and UX decisions independently within the accepted product direction and constraints.
 - Decompose work into manageable slices. Implement, test, inspect, fix failures, and commit completed, verified slices locally using conventional commit messages.
 - Continue across roadmap milestones without waiting for product-owner approval at each checkpoint or milestone boundary.
@@ -33,6 +36,17 @@ Last updated: 2026-11-28
 
 ## Last verified
 
+- 2026-11-28 — M4.3 gates, all run through `powershell -NoProfile -File scripts/native.ps1`:
+  - `pnpm format:check` — exit 0; "All matched files use Prettier code style!" and `cargo fmt --check` produced no findings.
+  - `pnpm typecheck` — exit 0; `tsc --noEmit` passed for `tsconfig.app.json`, `tsconfig.node.json`, and `tsconfig.harness.json`.
+  - `pnpm lint:frontend` — exit 0; `eslint . --max-warnings=0` produced no findings.
+  - `pnpm test:themes` — exit 0; 74 contrast pairings validated, 1 bundled theme validated, 32 production source files consume registered tokens.
+  - `pnpm test:frontend` — exit 0; 17 test files, 103 tests passed.
+  - `pnpm test:e2e` — exit 0; 7 Chromium tests passed, including "sidebar resizes by pointer and keyboard within session bounds and resets on reload" with pointer drag, Home/End/Arrow keys, destination retention, 760px window bounds, reload reset, focus ring, contrast, axe, and no browser storage.
+  - `pnpm build` — exit 0; production build emitted only `dist/index.html`, one CSS asset (20.42 kB), and one JS asset (289.47 kB).
+  - `pnpm build:harness:frontend` — exit 0; harness build emitted both entries and assets. Vite reported the existing chunk-size warning for the proofs chunk (743.96 kB); the command did not fail.
+  - `pnpm verify:build-isolation` — exit 0; production output contains exactly one HTML entry with no harness page/path/marker; the optimized harness contains both entries; both executables passed isolation checks. Evidence: `test-results/build-isolation/evidence.json`.
+- 2026-11-28 — M4.3 implementation note: the installed UI SDK `0.1.0-beta.13` resolves a pixel `defaultSize` against pre-layout panel widths at startup when reduced motion is active, producing an incorrect default share. The shell supplies a two-panel initial percentage layout derived from the measured viewport (`initialSidebarLayout`) so the 240px session default holds. CSS `min-width: 200px`/`max-width: 320px` on the sidebar panel keeps the approved pixel bounds stable during the SDK's asynchronous group-resize reconciliation; the SDK still owns pointer/keyboard resize and layout. This is a workaround for observed beta behavior, not a second layout implementation.
 - 2026-11-28 — docs commit `docs: adopt autonomous operating mandate` (local; not pushed):
   - `powershell -NoProfile -File scripts/native.ps1 pnpm exec prettier --check AGENTS.md BUILD-STATUS.md .opencode/agents/merlin.md` — exit 0; "All matched files use Prettier code style!"
   - `git diff --check` — exit 0; no output.
@@ -56,5 +70,6 @@ Last updated: 2026-11-28
 
 - Phase 1 M4 scope and approved decisions: `docs/PHASE-1-M4-PLAN.md`, `docs/DECISIONS.md` D-061–D-066.
 - Workflow decision: `docs/DECISIONS.md` D-068 (supersedes D-067).
-- Phase 2 remains documented in `docs/PHASE-2-PLAN.md`. The primary agent should use it alongside the other product specifications when planning subsequent implementation.
+- Autonomous roadmap execution: `docs/DECISIONS.md` D-069.
+- Phase 2 remains documented in `docs/PHASE-2-PLAN.md`. It begins after Phase 1 closure under D-069.
 - Read `AGENTS.md` before resuming.

@@ -142,11 +142,11 @@ Acceptance:
 - Existing frontend, native, Chromium, WebView2, accessibility, production packaging, test-harness, settings, security, and production-boundary gates pass.
 - Workflow-equivalent steps pass locally; hosted CI is explicitly unverified until actually executed under separate authorization.
 
-### Milestone 4 — Application shell, navigation, common controls, and Phase 1 closure (required; Checkpoint 1 authorized; Checkpoints 2–6 not authorized)
+### Milestone 4 — Application shell, navigation, common controls, and Phase 1 closure (required; Checkpoints 1–2 accepted; Checkpoints 3–6 proceed under D-069)
 
 Phase 1 is not complete. The Phase 1 build list requires a Tauri/React shell, Overview/Projects/Resources navigation, and common controls and layout primitives. Milestones 1–3 delivered identity, settings, and the design system, but the normal React surface is still the Phase 0 technical-preflight proof. Milestone 4 is the remaining Phase 1 work, not new product scope.
 
-The finalized dependency-aware plan, file map, proof relocation, and approved decisions M4-D1–M4-D6 are in `docs/PHASE-1-M4-PLAN.md`. **Checkpoint 1 (baseline guards and Phase 0 proof relocation using Option B) is authorized.** Checkpoints 2–6 remain unauthorized until separately approved.
+The finalized dependency-aware plan, file map, proof relocation, and approved decisions M4-D1–M4-D6 are in `docs/PHASE-1-M4-PLAN.md`. Checkpoint 1 was authorized and completed; Checkpoint 2 was separately authorized, manually accepted, and committed on 2026-11-28. Under D-069, Checkpoints 3–6 and subsequent roadmap work proceed autonomously within the approved scope; manual acceptance is recorded separately and never inferred.
 
 Approved scope:
 
@@ -178,11 +178,11 @@ Verification gates:
 - **Accessibility:** navigation and minimal controls have accessible names, visible focus, keyboard operation, active-state announcement, dialog focus management, and reduced-motion behavior where animated.
 - **Windows build:** Windows 11 debug launch and production-feature packaged build succeed with the harness excluded.
 
-Milestone 4 implementation is authorized **only for Checkpoint 1**. Do not begin Checkpoints 2–6 or Phase 2 until separately approved.
+Milestone 4 implementation proceeds under the autonomous operating mandate (D-069): Checkpoints 3–6 are unblocked within the approved milestone scope. Phase 2 starts only after Phase 1 closure gates pass.
 
 ## Phase 2 — Docs and Vault
 
-**Planning status (2026-11-26):** Proposed only; not authorized. The detailed, sequenced milestone plan is in `docs/PHASE-2-PLAN.md`. It requires Phase 1 Milestone 4 to pass first. M4-D5 Option B is approved and Checkpoint 1 is authorized; the remaining M4 checkpoints still require approval. The summary below remains the authoritative Phase 2 outcome contract; the detailed plan may not weaken it.
+**Planning status (2026-11-28):** Planned and sequenced; implementation begins after Phase 1 Milestone 4 passes its closure gates, under D-069. The detailed milestone plan is in `docs/PHASE-2-PLAN.md`. M4-D5 Option B is approved. The summary below remains the authoritative Phase 2 outcome contract; the detailed plan may not weaken it.
 
 Phase 2 includes the minimum stable project identity, optional repository connection, and Docs-root registration that Docs requires. Phase 3 extends those records into the full Projects area; it must not create a second project identity. The rest of the Phase 2 build list below remains unchanged.
 
