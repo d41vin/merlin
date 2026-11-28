@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import { SETTINGS_LOAD_FAILURE_MESSAGE } from "@/components/common/StatusMessage"
 import { OVERVIEW_UNAVAILABLE_DESCRIPTION } from "@/features/overview/OverviewPage"
-import { PROJECTS_UNAVAILABLE_DESCRIPTION } from "@/features/projects/ProjectsPage"
+import { PROJECTS_UNAVAILABLE_DESCRIPTION } from "@/projects/copy"
 import { RESOURCES_UNAVAILABLE_DESCRIPTION } from "@/features/resources/ResourcesPage"
 import { defaultApplicationSettings } from "@/settings/model"
 

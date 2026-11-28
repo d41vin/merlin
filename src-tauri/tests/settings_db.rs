@@ -57,7 +57,7 @@ fn valid_layout() -> PanelLayout {
 }
 
 #[test]
-fn v1_database_upgrades_to_v2_without_changing_existing_data() {
+fn v1_database_upgrades_through_current_migrations_without_changing_existing_data() {
     let directory = tempfile::tempdir().expect("temporary data directory");
     let database_path = directory.path().join("merlin.sqlite3");
 
@@ -135,7 +135,7 @@ fn v1_database_upgrades_to_v2_without_changing_existing_data() {
             row.get(0)
         })
         .expect("count migrations");
-    assert_eq!(migration_count, 2);
+    assert_eq!(migration_count, 3);
     let current_v1_history = connection
         .query_row(
             "SELECT version, name, applied_on, checksum FROM refinery_schema_history WHERE version = 1",
@@ -200,7 +200,7 @@ fn v1_database_upgrades_to_v2_without_changing_existing_data() {
 }
 
 #[test]
-fn v2_reopen_is_idempotent_and_preserves_existing_rows() {
+fn reopen_is_idempotent_and_preserves_existing_rows() {
     let directory = tempfile::tempdir().expect("temporary data directory");
     let database = AppDatabase::open_in_data_dir(directory.path()).expect("create V2 database");
     let connection = Connection::open(database.file_path()).expect("inspect fresh rows");
@@ -221,7 +221,7 @@ fn v2_reopen_is_idempotent_and_preserves_existing_rows() {
             row.get(0)
         })
         .expect("count migrations after reopen");
-    assert_eq!(migration_count, 2);
+    assert_eq!(migration_count, 3);
     let reopened = connection
         .query_row(
             "SELECT value_json, updated_at FROM settings WHERE key = 'app.density.v1'",

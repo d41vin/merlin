@@ -6,7 +6,7 @@ use crate::error::AppError;
 use crate::services::settings::{ApplicationSettingsSnapshot, SettingsService};
 
 #[derive(Debug)]
-pub struct ContentFreeString(String);
+pub struct ContentFreeString(pub(crate) String);
 
 impl<'de> Deserialize<'de> for ContentFreeString {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>

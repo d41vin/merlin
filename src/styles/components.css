@@ -229,6 +229,118 @@
   gap: var(--panel-padding);
 }
 
+.merlin-projects-toolbar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.merlin-projects-layout {
+  display: grid;
+  grid-template-columns: minmax(180px, 240px) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--section-padding);
+}
+
+.merlin-project-list {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.merlin-project-row {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  padding: 6px var(--panel-padding);
+  border: 0;
+  border-left: var(--active-indicator-width) solid transparent;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+}
+
+.merlin-project-row:hover {
+  background: var(--bg-hover);
+}
+
+.merlin-project-row[aria-current="true"] {
+  border-left-color: var(--accent);
+  background: var(--bg-selected);
+}
+
+.merlin-project-row-name {
+  font-size: 13px;
+}
+
+.merlin-project-row-meta {
+  overflow-wrap: anywhere;
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: var(--tracking-metadata);
+}
+
+.merlin-project-detail {
+  display: grid;
+  gap: var(--section-padding);
+  padding: var(--section-padding);
+}
+
+.merlin-project-facts {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.merlin-project-facts > div {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 12px;
+}
+
+.merlin-project-facts dt {
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: var(--tracking-metadata);
+}
+
+.merlin-project-facts dd {
+  min-width: 0;
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.merlin-project-path {
+  display: block;
+  overflow-wrap: anywhere;
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: var(--tracking-metadata);
+}
+
+.merlin-project-store-path {
+  margin-top: 2px;
+}
+
+.merlin-project-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--panel-padding);
+}
+
+@media (max-width: 900px) {
+  .merlin-projects-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .merlin-status {
   min-height: 20px;
   color: var(--text-secondary);

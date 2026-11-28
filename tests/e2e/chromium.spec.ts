@@ -2,6 +2,7 @@ import AxeBuilder from "@axe-core/playwright"
 import { expect, test, type Locator, type Page } from "@playwright/test"
 
 import { getFixture, MARKDOWN_FIXTURES } from "../../src/markdown/fixtures"
+import { PROJECTS_UNAVAILABLE_DESCRIPTION } from "../../src/projects/copy"
 import { contrastRatio } from "../../src/themes/contract"
 import { CONTROLS_HARNESS_PATH, PROOF_HARNESS_PATH } from "../support/harness"
 
@@ -602,7 +603,7 @@ test("product shell exposes three honest destinations with accessible navigation
     },
     {
       name: "Projects",
-      copy: "Project records and the project workbench are not implemented in this build.",
+      copy: PROJECTS_UNAVAILABLE_DESCRIPTION,
     },
     {
       name: "Resources",

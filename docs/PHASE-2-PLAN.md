@@ -116,6 +116,14 @@ the stated commit boundary; do not merge verification or skip the acceptance gat
 
 ### P2-M1 — Project identity, registration, and Project Store foundation
 
+**Status 2026-11-28:** Implemented and automatically verified under D-069. The local commit boundary
+is `feat: add project and docs registration foundation`; no push is authorized. Product-owner manual
+acceptance is pending and is not inferred. V2→V3 migration, project creation with and without a
+repository, explicit Docs-root confirm/create/skip, reconnect detection, path confinement, Project
+Store isolation, browser-unavailable behavior, real WebView2 registration across restart, axe, and
+the existing Phase 1 gates pass. P2-M1 uses typed path fields; a native folder picker remains
+deferred because no picker dependency is approved.
+
 **Objective and user-visible outcome**
 
 A user can create a stable Merlin project, optionally connect an existing local repository, and
@@ -156,7 +164,8 @@ and a Docs entry point. No document is copied, edited, or synchronized yet.
   Label, Dialog).
 - The M4 decision that sidebar width is session-only; P2-M1 must not assume or add sidebar-width
   persistence.
-- Explicit approval of the minimal Phase 2 project/repository boundary (outstanding; see §6.2).
+- D-069 authorizes the minimal Phase 2 project/repository boundary described in this plan; Phase 3
+  expands it into the full Projects area. The boundary is recorded in D-071.
 
 **Expected data-model and migration changes**
 
@@ -1131,9 +1140,9 @@ These require explicit resolution before the affected milestone:
    Checkpoints 1–2 are accepted; Checkpoints 3–6 are implemented and automatically verified with
    Phase 1 automated closure evidence in `BUILD-STATUS.md`. Manual Windows 11 acceptance and hosted
    CI for a pushed commit remain pending and do not block local Phase 2 implementation under D-069.
-2. **Minimal Phase 2 Projects surface.** P2-M1 proposes a minimal project create/select and Docs-
-   registration surface. Phase 3 will expand it into the full Projects area. If this boundary is
-   not approved, Phase 2 needs a different, explicitly approved entry point.
+2. **Minimal Phase 2 Projects surface.** P2-M1 implements the proposed minimal project
+   create/select and Docs-registration surface under D-069 and D-071. Phase 3 will expand it into
+   the full Projects area. Native folder selection is deferred; P2-M1 uses typed paths.
 3. **Git HEAD/branch acquisition.** Choose one: read-only fixed-argument `git.exe` invocation,
    narrow `.git` parsing, or a pinned Rust Git crate. A new dependency requires separate approval.
    The chosen mechanism must handle detached HEAD, worktrees, missing `.git`, and unavailable

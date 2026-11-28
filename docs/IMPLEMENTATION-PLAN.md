@@ -183,7 +183,7 @@ Milestone 4 automated closure is complete under the autonomous operating mandate
 
 ## Phase 2 — Docs and Vault
 
-**Planning status (2026-11-28):** Planned and sequenced. Phase 1 Milestone 4 automated closure gates pass; manual acceptance and hosted CI remain pending. Under D-069, Phase 2 implementation proceeds with those pending checks recorded. The detailed milestone plan is in `docs/PHASE-2-PLAN.md`. M4-D5 Option B and D-070 are recorded. The summary below remains the authoritative Phase 2 outcome contract; the detailed plan may not weaken it.
+**Planning status (2026-11-28):** P2-M1 project identity, registration, and Project Store foundation is implemented and automatically verified. Later Phase 2 milestones proceed under D-069. Phase 1 manual acceptance and hosted CI remain pending. The detailed milestone plan is in `docs/PHASE-2-PLAN.md`. M4-D5 Option B and D-070 are recorded. The summary below remains the authoritative Phase 2 outcome contract; the detailed plan may not weaken it.
 
 Phase 2 includes the minimum stable project identity, optional repository connection, and Docs-root registration that Docs requires. Phase 3 extends those records into the full Projects area; it must not create a second project identity. The rest of the Phase 2 build list below remains unchanged.
 

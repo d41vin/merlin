@@ -1,4 +1,5 @@
-import { readFileSync } from "node:fs"
+import { mkdirSync, readFileSync, rmSync } from "node:fs"
+import path from "node:path"
 
 import AxeBuilder from "@axe-core/playwright"
 import { expect, test, type Page } from "@playwright/test"
@@ -481,6 +482,85 @@ test("optimized harness launches packaged assets and typed SQLite IPC", async ()
     await expect(session.page.locator("html")).toHaveCSS("color-scheme", "dark")
     await expect(session.page.locator(".merlin-control").first()).toHaveCSS("min-height", "28px")
     expect(await session.page.evaluate(() => window.localStorage.length)).toBe(0)
+    expect(consoleErrors).toEqual([])
+  } finally {
+    if (session) await stopWebView2(session)
+  }
+})
+
+test("project registration and docs-root confirmation persist through a native restart", async () => {
+  test.setTimeout(360_000)
+  prepareWebView2Artifacts()
+  const repositoryDirectory = path.join(process.cwd(), "test-results", "webview2", "p2-repository")
+  rmSync(repositoryDirectory, { recursive: true, force: true })
+  mkdirSync(path.join(repositoryDirectory, "docs"), { recursive: true })
+  let session: WebView2Session | undefined
+  const consoleErrors: string[] = []
+  const observeErrors = (page: Page) => {
+    page.on("console", (message) => {
+      if (message.type() === "error") consoleErrors.push(message.text())
+    })
+  }
+
+  try {
+    session = await startWebView2()
+    observeErrors(session.page)
+    await expectShellReady(session.page)
+    await session.page.getByRole("button", { name: "Projects", exact: true }).click()
+    await expect(session.page.getByRole("heading", { level: 1, name: "Projects" })).toBeVisible()
+    await expect(session.page.getByText(/No projects yet/)).toBeVisible()
+
+    await session.page.getByRole("button", { name: "New project" }).click()
+    const createDialog = session.page.getByRole("dialog", { name: "New project" })
+    await createDialog.getByRole("textbox", { name: "Name" }).fill("WebView2 project")
+    await createDialog
+      .getByRole("textbox", { name: "Description" })
+      .fill("Project registration proof")
+    await createDialog.getByRole("button", { name: "Create project" }).click()
+    await expect(createDialog).toBeHidden()
+    await expect(session.page.getByRole("button", { name: /WebView2 project/ })).toBeVisible()
+    const detail = session.page.getByRole("region", { name: "Project registration" })
+    await expect(detail.getByText(/Merlin Project Store/)).toBeVisible()
+    const projectsAccessibility = await new AxeBuilder({ page: session.page })
+      .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+      .analyze()
+    expect(projectsAccessibility.violations).toEqual([])
+
+    await detail.getByRole("button", { name: "Connect repository" }).click()
+    const connectDialog = session.page.getByRole("dialog", { name: "Connect repository" })
+    const dialogAccessibility = await new AxeBuilder({ page: session.page })
+      .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+      .analyze()
+    expect(dialogAccessibility.violations).toEqual([])
+    await connectDialog
+      .getByRole("textbox", { name: "Repository folder" })
+      .fill(repositoryDirectory)
+    await connectDialog.getByRole("button", { name: "Connect repository" }).click()
+    await expect(connectDialog).toBeHidden()
+    await expect(detail.getByText(repositoryDirectory)).toBeVisible()
+
+    await detail.getByRole("button", { name: "Confirm docs folder" }).click()
+    const docsDialog = session.page.getByRole("dialog", { name: "Use docs as the Docs root?" })
+    await docsDialog.getByRole("button", { name: "Confirm docs root" }).click()
+    await expect(docsDialog).toBeHidden()
+    await expect(session.page.getByText("Docs root confirmed.")).toBeVisible()
+    await expect(detail.getByText(/docs · Available/)).toBeVisible()
+    expect(
+      await session.page.evaluate(() => ({
+        local: window.localStorage.length,
+        session: window.sessionStorage.length,
+      })),
+    ).toEqual({ local: 0, session: 0 })
+
+    session = await restartWebView2(session)
+    observeErrors(session.page)
+    await expectShellReady(session.page)
+    await session.page.getByRole("button", { name: "Projects", exact: true }).click()
+    await expect(session.page.getByRole("heading", { level: 1, name: "Projects" })).toBeVisible()
+    await expect(session.page.getByRole("button", { name: /WebView2 project/ })).toBeVisible()
+    const restartedDetail = session.page.getByRole("region", { name: "Project registration" })
+    await expect(restartedDetail.getByText(repositoryDirectory)).toBeVisible()
+    await expect(restartedDetail.getByText(/docs · Available/)).toBeVisible()
     expect(consoleErrors).toEqual([])
   } finally {
     if (session) await stopWebView2(session)

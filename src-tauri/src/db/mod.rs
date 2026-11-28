@@ -1,4 +1,5 @@
 pub mod path;
+pub mod projects;
 pub mod settings;
 pub mod sync;
 
@@ -29,6 +30,7 @@ const CREDENTIAL_REFERENCE_PROOF_KEY: &str = "preflight.credential_reference_pro
 pub struct AppDatabase {
     connection: Mutex<Connection>,
     file_path: PathBuf,
+    data_directory: PathBuf,
 }
 
 impl AppDatabase {
@@ -49,14 +51,29 @@ impl AppDatabase {
             .run(&mut connection)
             .map_err(|_| AppError::database())?;
 
+        let data_directory = file_path
+            .parent()
+            .ok_or_else(|| {
+                AppError::new(
+                    AppErrorCode::PathOutsideRoot,
+                    "application database must have a parent directory",
+                )
+            })?
+            .to_path_buf();
+
         Ok(Self {
             connection: Mutex::new(connection),
             file_path: file_path.to_path_buf(),
+            data_directory,
         })
     }
 
     pub fn file_path(&self) -> &Path {
         &self.file_path
+    }
+
+    pub fn data_directory(&self) -> &Path {
+        &self.data_directory
     }
 
     pub fn load_layout(&self) -> Result<Option<PanelLayout>, AppError> {
@@ -216,7 +233,7 @@ fn validate_operation_id(operation_id: &str) -> Result<(), AppError> {
     Ok(())
 }
 
-fn utc_timestamp() -> Result<String, AppError> {
+pub(crate) fn utc_timestamp() -> Result<String, AppError> {
     OffsetDateTime::now_utc()
         .format(&Rfc3339)
         .map_err(|_| AppError::database())

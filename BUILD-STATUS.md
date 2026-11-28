@@ -14,13 +14,15 @@ Last updated: 2026-11-28
 - M4.5 proves the shell in real WebView2 development and optimized-harness builds: shell startup, settings IPC, sidebar bounds and destination retention, reload/restart reset to 240px, unchanged four-panel layout, proof-harness persistence across restart, and persisted density/reduced-motion application. Settings rejection and no-reflection assertions remain intact.
 - **Phase 1, Milestone 4, Checkpoint 6 (M4.6)** records Phase 1 automated closure. Every local gate passes, including production packaging and production-boundary checks. The local commit boundary is `docs: record phase 1 milestone 4 closure`; it is not pushed. Manual Windows 11 acceptance and hosted CI for a pushed commit remain **pending** and are not inferred.
 - Phase 1 is therefore **automatically verified but not product-owner accepted and not hosted-CI verified**. Phase 2 implementation proceeds under D-069 while those external checks remain pending.
+- **Phase 2, P2-M1 — project identity, registration, and Project Store foundation** is implemented and every required automated gate passes. The local commit boundary is `feat: add project and docs registration foundation`; it is not pushed. Manual Windows 11 acceptance and hosted CI remain **pending** and are not inferred.
+- P2-M1 adds the V3 `projects`, `repository_connections`, and `docs_roots` schema; stable UUID project identity; optional canonical repository connection with remote-identity reconnect detection; explicit Docs-root confirm/create/choose/skip actions; the deterministic Project Store skeleton under app data; a minimal Projects registration UI; and honest browser-only behavior. No document copy, edit, manifest, watcher, sync, conflict, attachment, or workbench behavior is added. Typed path fields are used; a native folder picker is deferred.
 - The development workflow is one primary agent (`merlin`), optional read-only support agents, and local commits at verified slice boundaries. Workflow commit: `b81ccfca35a76bbe7dfae9c84542d0812c04ef73` (`chore: simplify opencode development workflow`).
-- Branch `main`. Before this closure commit, `HEAD` is `6dc118b` (`test: verify phase 1 shell integration`); `origin/main` is `3da8bfcf2a3a74ee6ffb93b464f89e9fb46baee7`. The seven local commits ahead of the remote are `b81ccfc`, `5c216ad`, `4bcab98`, `caf73a6`, `dc5362a`, `6712686`, and `6dc118b`; this closure adds an eighth. No push of any local work has occurred.
+- Branch `main`. Before this slice commit, `HEAD` is `7b62f61` (`docs: record phase 1 milestone 4 closure`); `origin/main` is `3da8bfcf2a3a74ee6ffb93b464f89e9fb46baee7`. The eight local commits ahead of the remote are `b81ccfc`, `5c216ad`, `4bcab98`, `caf73a6`, `dc5362a`, `6712686`, `6dc118b`, and `7b62f61`; this slice adds a ninth. No push of any local work has occurred.
 
 ## Next
 
-- Begin **Phase 2, P2-M1 — project identity, registration, and Project Store foundation** using `docs/PHASE-2-PLAN.md`, `docs/DOCS-AND-VAULT.md`, and the accepted data/security contracts. Preserve Phase 1 settings, layout, shell, and proof/controls harnesses.
-- Continue autonomous implementation under D-069. Complete M4.3–M4.6 manual Windows 11 acceptance and hosted CI when the product owner is available; record them separately and never infer them.
+- Begin **Phase 2, P2-M2 — Docs manifest and read-only source browser** using `docs/PHASE-2-PLAN.md`, `docs/DOCS-AND-VAULT.md`, and `docs/SECURITY.md`. Preserve P2-M1 project/Docs-root records and Phase 1 gates.
+- Continue autonomous implementation under D-069. Complete P2-M1 and M4.3–M4.6 manual Windows 11 acceptance and hosted CI when the product owner is available; record them separately and never infer them.
 - Continue autonomous implementation of Merlin using the accepted product specifications, architecture, decisions, and roadmap as the source of truth.
 - The primary `merlin` agent owns engineering execution. Read `AGENTS.md`, relevant product documentation, `docs/DECISIONS.md`, and this file before continuing.
 - Independently select the next unblocked vertical slice based on dependencies, technical soundness, and overall product completeness; implementation order may be adjusted when technically justified.
@@ -35,6 +37,7 @@ Last updated: 2026-11-28
 
 - No current implementation blocker.
 - Phase 1 manual Windows 11 acceptance and hosted CI for a pushed commit are pending; they do not block Phase 2 implementation under D-069.
+- P2-M1 product-owner manual acceptance is pending; it does not block P2-M2 implementation.
 - `scripts/native.ps1` provides the verified process-scoped pnpm and native environment.
 - The machine-wide pnpm launcher remains broken (`C:\Program Files\nodejs\node_modules\pnpm\pnpm.exe` is missing). Continue using `scripts/native.ps1`. Do not make machine-wide changes without explicit authorization.
 - Escalate only when a fundamental product-direction decision is required, an existing security/privacy/data-integrity requirement must change, a destructive or irreversible operation is necessary, money must be spent, something must be published externally, a required verification gate cannot run, repeated credible attempts cannot resolve a blocker, or specifications cannot reasonably resolve a consequential product tradeoff.
@@ -42,6 +45,22 @@ Last updated: 2026-11-28
 
 ## Last verified
 
+- 2026-11-28 — P2-M1 project registration gates, run through `powershell -NoProfile -File scripts/native.ps1` unless noted:
+  - `pnpm format:check` — exit 0; Prettier passed and `cargo fmt --check` produced no findings after formatting the new Rust modules.
+  - `pnpm typecheck` — exit 0; all three TypeScript projects passed.
+  - `pnpm lint:frontend` — exit 0; `eslint . --max-warnings=0` produced no findings.
+  - `pnpm lint:rust` and `pnpm lint:rust:harness` — exit 0; Clippy passed with `-D warnings` in default and test-harness configurations.
+  - `pnpm test:themes` — exit 0; 74 contrast pairings, 1 bundled theme, 39 production source files consume registered tokens.
+  - `pnpm test:frontend` — exit 0; 22 test files, 114 tests passed, including new project registration UI tests.
+  - `pnpm test:e2e` — exit 0; 8 Chromium tests passed.
+  - `pnpm test:webview2` — exit 0; 3 real WebView2 tests passed in 1.3m. The new project-registration test created a project, connected a temporary repository, confirmed a detected `docs/` root, verified axe accessibility on the page and open dialog, restarted the native process, and confirmed the project, repository, and Docs root persisted.
+  - `pnpm test:rust` — exit 0; 42 tests passed, 0 failed. Coverage includes V2→V3 migration with V1/V2 history preservation, project creation with and without a repository, Docs-root confirm/create/skip, duplicate path/remote reconnect detection, path traversal/absolute/relative/missing rejection, application-data containment, symlink escape, Project Store isolation/idempotence, and missing Docs-root state.
+  - `pnpm test:rust:harness` — exit 0; 43 tests passed, 0 failed under `test-harness`.
+  - `pnpm tauri build --features custom-protocol,production --no-binary-patching` — exit 0; production executable SHA256 `0D9B2CF5FC6604D7878D6B53CB433D989DEA26EC357C5D72046A4E0B04FD64F2`; NSIS installer `Merlin_0.1.0_x64-setup.exe` (3,213,072 bytes, SHA256 `FF139A3CEAB8B2AC93FC44220EC0E567F9AAEEFA203CD696092AA32F49AC14FF`).
+  - `pnpm build:test-harness` — exit 0; optimized harness rebuilt with all three harness pages and Project registration code; SHA256 `825E4B624D13B438C125B861DCD4D72C5B767559775814713CD1B64A384E51D4`.
+  - `pnpm verify:build-isolation` — exit 0; production remains single-entry with no harness page/path/marker; harness contains `index.html`, `proofs.html`, and `controls.html`; both executables passed.
+  - `pnpm verify:production-boundary` — exit 0; all eight production-boundary gates passed with the rebuilt production package and harness. Evidence: `test-results/production-boundary/evidence.json`.
+  - Manual Windows 11 acceptance and hosted CI remain **unverified**. No push was performed.
 - 2026-11-28 — M4.6 Phase 1 automated closure, run through `powershell -NoProfile -File scripts/native.ps1` unless noted:
   - `pnpm format:check` — exit 0; Prettier passed and `cargo fmt --check` produced no findings.
   - `pnpm typecheck` — exit 0; all three TypeScript projects passed.
@@ -115,6 +134,7 @@ Last updated: 2026-11-28
 - Workflow decision: `docs/DECISIONS.md` D-068 (supersedes D-067).
 - Autonomous roadmap execution: `docs/DECISIONS.md` D-069.
 - Test-only controls harness boundary: `docs/DECISIONS.md` D-070.
+- P2-M1 project registration model and reconnect semantics: `docs/DECISIONS.md` D-071.
 - Phase 1 automated closure evidence: `BUILD-STATUS.md`, `test-results/build-isolation/evidence.json`, `test-results/production-boundary/evidence.json`.
-- Phase 2 begins at P2-M1 under D-069 while Phase 1 manual acceptance and hosted CI remain pending.
+- Phase 2 P2-M1 is implemented; next slice is P2-M2. Phase 1 manual acceptance and hosted CI remain pending.
 - Read `AGENTS.md` before resuming.

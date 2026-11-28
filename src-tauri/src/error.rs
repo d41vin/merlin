@@ -7,6 +7,10 @@ use thiserror::Error;
 pub enum AppErrorCode {
     InvalidLayout,
     InvalidSettings,
+    InvalidProject,
+    InvalidRepository,
+    InvalidDocsRoot,
+    ProjectStore,
     Database,
     Io,
     PathUnavailable,

@@ -42,6 +42,14 @@ pub fn run() {
             commands::settings::settings_set_theme,
             commands::settings::settings_set_density,
             commands::settings::settings_set_reduce_motion,
+            commands::projects::projects_list,
+            commands::projects::project_get,
+            commands::projects::project_create,
+            commands::projects::repository_connect,
+            commands::projects::docs_root_detect,
+            commands::projects::docs_root_confirm,
+            commands::projects::docs_root_create,
+            commands::projects::docs_root_skip,
         ])
         .run(tauri::generate_context!())
         .expect("Merlin encountered a fatal Tauri runtime error");
