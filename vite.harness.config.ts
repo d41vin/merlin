@@ -18,6 +18,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         application: fileURLToPath(new URL("./index.html", import.meta.url)),
+        controls: fileURLToPath(new URL("./tests/harness/controls.html", import.meta.url)),
         proofs: fileURLToPath(new URL("./tests/harness/proofs.html", import.meta.url)),
       },
     },

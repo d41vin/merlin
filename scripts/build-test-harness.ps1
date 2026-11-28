@@ -6,6 +6,7 @@ $builtExecutable = Join-Path $releaseDirectory "merlin.exe"
 $harnessExecutable = Join-Path $releaseDirectory "merlin-test-harness.exe"
 $harnessDist = Join-Path $repoRoot "dist-harness"
 $harnessProofPage = Join-Path $harnessDist "tests/harness/proofs.html"
+$harnessControlsPage = Join-Path $harnessDist "tests/harness/controls.html"
 $previousTauriConfig = $env:TAURI_CONFIG
 
 Push-Location $repoRoot
@@ -19,6 +20,9 @@ try {
   }
   if (-not (Test-Path -LiteralPath $harnessProofPage -PathType Leaf)) {
     throw "Harness frontend build did not produce tests/harness/proofs.html"
+  }
+  if (-not (Test-Path -LiteralPath $harnessControlsPage -PathType Leaf)) {
+    throw "Harness frontend build did not produce tests/harness/controls.html"
   }
 
   $env:CARGO_TARGET_DIR = $targetDirectory

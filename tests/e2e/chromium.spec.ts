@@ -3,7 +3,7 @@ import { expect, test, type Locator, type Page } from "@playwright/test"
 
 import { getFixture, MARKDOWN_FIXTURES } from "../../src/markdown/fixtures"
 import { contrastRatio } from "../../src/themes/contract"
-import { PROOF_HARNESS_PATH } from "../support/harness"
+import { CONTROLS_HARNESS_PATH, PROOF_HARNESS_PATH } from "../support/harness"
 
 async function computedThemeStyle(locator: Locator, pseudo?: string) {
   return locator.evaluate((element, pseudoElement) => {
@@ -852,5 +852,82 @@ test("sidebar resizes by pointer and keyboard within session bounds and resets o
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
     .analyze()
   expect(accessibility.violations).toEqual([])
+  expect(consoleErrors).toEqual([])
+})
+
+test("minimal common controls expose labels, focus, disabled/error states, and dialog behavior", async ({
+  page,
+}) => {
+  const consoleErrors: string[] = []
+  page.on("console", (message) => {
+    if (message.type() === "error") consoleErrors.push(message.text())
+  })
+  const externalRequests: string[] = []
+  page.on("request", (request) => {
+    if (request.url().startsWith("https://")) externalRequests.push(request.url())
+  })
+  await page.goto(CONTROLS_HARNESS_PATH)
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Merlin common controls harness" }),
+  ).toBeVisible()
+  await expect(page.getByText(/no merlin project, resource, account, or usage data/i)).toBeVisible()
+
+  const name = page.getByRole("textbox", { name: "Display name" })
+  const notes = page.getByRole("textbox", { name: "Notes" })
+  const disabled = page.getByRole("textbox", { name: "Disabled field" })
+  const invalid = page.getByRole("textbox", { name: "Field with error" })
+  await expect(name).toBeEditable()
+  await expect(notes).toBeEditable()
+  await expect(disabled).toBeDisabled()
+  await expect(invalid).toHaveAttribute("aria-invalid", "true")
+  await expect(invalid).toHaveAccessibleDescription("Enter a value.")
+  await name.fill("Example name")
+  await notes.fill("A short note.")
+  expect(await name.inputValue()).toBe("Example name")
+  expect(await notes.inputValue()).toBe("A short note.")
+
+  await tabToElement(page, name)
+  await expect(name).toBeFocused()
+  await expect.poll(() => name.evaluate((element) => element.matches(":focus-visible"))).toBe(true)
+  const inputStyle = await computedThemeStyle(name)
+  expect(inputStyle).toMatchObject({
+    color: "rgb(242, 244, 245)",
+    backgroundColor: "rgb(8, 9, 10)",
+    borderTopColor: "rgb(137, 148, 159)",
+    outlineColor: "rgb(217, 119, 66)",
+    outlineStyle: "solid",
+    outlineWidth: "2px",
+  })
+  expectContrast(inputStyle.color, inputStyle.backgroundColor, 4.5)
+  expectContrast(inputStyle.borderTopColor, inputStyle.backgroundColor, 3)
+  expectContrast(inputStyle.outlineColor, "rgb(8, 9, 10)", 3)
+
+  const trigger = page.getByRole("button", { name: "Open dialog" })
+  await trigger.click()
+  const dialog = page.getByRole("dialog", { name: "Example dialog" })
+  await expect(dialog).toBeVisible()
+  await expect(dialog).toHaveAccessibleDescription(
+    "A token-styled modal with Escape handling and focus management.",
+  )
+  expect(await dialog.evaluate((element) => element.contains(document.activeElement))).toBe(true)
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    await page.keyboard.press("Tab")
+    expect(await dialog.evaluate((element) => element.contains(document.activeElement))).toBe(true)
+  }
+  await page.keyboard.press("Escape")
+  await expect(dialog).toBeHidden()
+  await expect(trigger).toBeFocused()
+
+  await trigger.click()
+  await expect(dialog).toBeVisible()
+  await dialog.getByRole("button", { name: "Close" }).click()
+  await expect(dialog).toBeHidden()
+  await expect(trigger).toBeFocused()
+
+  const accessibility = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+    .analyze()
+  expect(accessibility.violations).toEqual([])
+  expect(externalRequests).toEqual([])
   expect(consoleErrors).toEqual([])
 })

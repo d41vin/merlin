@@ -1,10 +1,11 @@
 # Phase 1 Milestone 4 — Application Shell, Navigation, Minimal Common Controls, and Phase 1 Closure
 
 Status: **Decisions M4-D1–M4-D6 approved 2026-11-26. Checkpoint 1 (M4.1) authorized 2026-11-26;
-Checkpoint 2 (M4.2) authorized 2026-11-28 and accepted 2026-11-28. Checkpoint 3 (M4.3) implemented
-and automatically verified under the autonomous operating mandate (D-069); manual Windows 11
-acceptance is pending. Checkpoints 4–6 proceed under D-069 without separate approval.** This
-document does not authorize dependency changes, migrations, IPC changes, or pushes.
+Checkpoint 2 (M4.2) authorized 2026-11-28 and accepted 2026-11-28. Checkpoints 3 (M4.3) and 4
+(M4.4) implemented and automatically verified under the autonomous operating mandate (D-069);
+manual Windows 11 acceptance is pending. Checkpoints 5–6 proceed under D-069 without separate
+approval.** This document does not authorize dependency changes, migrations, IPC changes, or
+pushes.
 
 Status update 2026-11-28: The product owner authorized M4 Checkpoint 2 (M4.2) with the words
 "M4 Checkpoint 2 is authorized" and approved the execution envelope. Implementation is present in
@@ -18,6 +19,11 @@ Status update 2026-11-28: The product owner adopted the autonomous operating man
 per-checkpoint approval (D-069). Checkpoint 3 (M4.3) is implemented and automatically verified;
 manual Windows 11 acceptance is pending and is not inferred. The local commit boundary is
 `feat: add resizable session sidebar`; no push is authorized. Checkpoints 4–6 proceed under D-069.
+
+Status update 2026-11-28: Checkpoint 4 (M4.4) is implemented and automatically verified. Manual
+Windows 11 acceptance is pending and is not inferred. The local commit boundary is
+`feat: add minimal common controls`; no push is authorized. The controls harness is test-only and
+included in the optimized harness under D-070; production remains single-entry.
 
 Date: 2026-11-26
 
@@ -342,7 +348,8 @@ directly, not wrapped in a second resizable abstraction.
 | `tests/harness/proofs.html`      | Add                      | Dev-only Vite HTML entry for the Phase 0 proofs                                                  |
 | `tests/harness/proofs.tsx`       | Add                      | Mount the existing proof composition with real browser stores                                    |
 | `tests/harness/controls.html`    | Add                      | Dev-only entry for the minimal common-control harness                                            |
-| `tests/harness/controls.tsx`     | Add                      | Render Input, Textarea, Label, Dialog, and Button with test-only state                           |
+| `tests/harness/controls.tsx`     | Add                      | Mount the controls harness with default theme and density                                        |
+| `tests/harness/ControlsHarness.tsx` | Add                   | Render Input, Textarea, Label, Dialog, and Button with test-only state and no domain data        |
 | `tsconfig.harness.json`          | Add                      | Isolated typecheck for `tests/harness/**/*.tsx` with the existing `@/` alias                     |
 | `vite.harness.config.ts`         | Add (Option B approved)  | Multi-page harness build into a separate output directory; production build remains single-entry |
 | `scripts/build-test-harness.ps1` | Edit (Option B approved) | Build the optimized harness from the harness config and embed only that output                   |
@@ -350,7 +357,9 @@ directly, not wrapped in a second resizable abstraction.
 These files are test infrastructure. They are served by the Vite development server and are not
 product routes. Do not add a production route, query-parameter branch, or hidden diagnostics
 surface to the application. The harness typecheck must resolve the existing `@/` alias (or the
-harness must use relative imports).
+harness must use relative imports). Under D-070, both the proof and controls pages are included in
+the optimized harness build; production remains single-entry and the isolation check asserts the
+controls page is absent from production.
 
 ### 7.4 Browser tests
 
@@ -436,14 +445,14 @@ feature-guard branch to the product application.
 ## 9. Checkpoints
 
 Each checkpoint is a candidate commit boundary. Checkpoint 1 and Checkpoint 2 were separately
-authorized; Checkpoint 3 is implemented and verified under D-069. Checkpoints 4–6 proceed under
-D-069 without separate approval. Do not push any checkpoint without separate authorization.
+authorized; Checkpoints 3 and 4 are implemented and verified under D-069. Checkpoints 5–6 proceed
+under D-069 without separate approval. Do not push any checkpoint without separate authorization.
 Hosted CI is required for the final milestone commit.
 
 > **2026-11-28:** D-069 supersedes the per-checkpoint authorization gate. Checkpoint 2 was accepted;
-> Checkpoint 3 is implemented and automatically verified with manual acceptance pending. Checkpoints
-> 4–6 continue autonomously within the approved milestone scope. The local commit prohibition for
-> Checkpoint 2 is superseded by its accepted commit `4bcab98`.
+> Checkpoints 3–4 are implemented and automatically verified with manual acceptance pending.
+> Checkpoints 5–6 continue autonomously within the approved milestone scope. The local commit
+> prohibition for Checkpoint 2 is superseded by its accepted commit `4bcab98`.
 
 Six checkpoints are retained because proof relocation, shell/navigation, sidebar behavior, minimal
 controls, cross-boundary integration, and closure each have a distinct acceptance gate and commit
@@ -645,6 +654,11 @@ measurements and explicit no-storage assertions.
 
 ### M4.4 — Minimal common controls and harness
 
+**Status 2026-11-28:** Implemented and automatically verified under D-069. The local commit boundary
+is `feat: add minimal common controls`; no push is authorized. Product-owner manual verification is
+pending and is not inferred. Vitest, Chromium controls-harness, axe, theme/token, harness-build, and
+build-isolation checks pass.
+
 **Objective:** Add only the approved common controls needed by immediate Phase 2 entry, without
 mounting them in the product shell.
 
@@ -682,7 +696,7 @@ new shared control style is required.
 - No product surface mounts foundation-only controls or fabricated domain data.
 
 **Automated tests:** Vitest/Testing Library control tests; Chromium controls-harness test; axe;
-`pnpm test:themes`.
+`pnpm test:themes`; `pnpm build:test-harness`; `pnpm verify:build-isolation`.
 
 **Manual verification:** Keyboard through the controls harness; open/close the dialog; confirm
 visible focus and labels.

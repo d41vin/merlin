@@ -16,6 +16,7 @@ const harnessExecutable = path.join(
 const evidenceDirectory = path.join(repoRoot, "test-results", "build-isolation")
 const evidencePath = path.join(evidenceDirectory, "evidence.json")
 const harnessMarker = "merlin-proof-harness-entry-v1"
+const controlsMarker = "merlin-controls-harness-entry-v1"
 const forbiddenProductionPaths = [/tests[\\/]harness/i, /proofs\.html$/i, /controls\.html$/i]
 
 function walk(directory) {
@@ -67,8 +68,10 @@ assert(
   `Production build contains harness-only paths: ${forbiddenProductionFiles.join(", ")}`,
 )
 
-const productionMarkerHits = productionFiles.filter((file) =>
-  containsBytes(path.join(productionDirectory, file), harnessMarker),
+const productionMarkerHits = productionFiles.filter(
+  (file) =>
+    containsBytes(path.join(productionDirectory, file), harnessMarker) ||
+    containsBytes(path.join(productionDirectory, file), controlsMarker),
 )
 assert(
   productionMarkerHits.length === 0,
@@ -96,19 +99,31 @@ assert(
   "Harness build is missing tests/harness/proofs.html",
 )
 assert(
-  !harnessFiles.some((file) => /controls\.html$/i.test(file)),
-  "Harness build unexpectedly contains the deferred controls harness",
+  harnessFiles.includes("tests/harness/controls.html"),
+  "Harness build is missing tests/harness/controls.html",
 )
 
 const harnessMarkerHits = harnessFiles.filter((file) =>
   containsBytes(path.join(harnessDirectory, file), harnessMarker),
 )
 assert(harnessMarkerHits.length > 0, `Harness build is missing the ${harnessMarker} marker`)
+const controlsMarkerHits = harnessFiles.filter((file) =>
+  containsBytes(path.join(harnessDirectory, file), controlsMarker),
+)
+assert(controlsMarkerHits.length > 0, `Harness build is missing the ${controlsMarker} marker`)
 
 const proofPage = readFileSync(path.join(harnessDirectory, "tests/harness/proofs.html"), "utf8")
 assert(
   /<script[^>]+src="[^"]+"/i.test(proofPage),
   "Harness proof page does not reference an entry script",
+)
+const controlsPage = readFileSync(
+  path.join(harnessDirectory, "tests/harness/controls.html"),
+  "utf8",
+)
+assert(
+  /<script[^>]+src="[^"]+"/i.test(controlsPage),
+  "Harness controls page does not reference an entry script",
 )
 
 const productionOnlyFiles = productionFiles.filter((file) => !harnessFiles.includes(file))
@@ -129,7 +144,8 @@ const productionSourceHarnessReferences = productionSourceFiles
     const contents = readFileSync(file)
     return (
       contents.includes(Buffer.from("tests/harness", "utf8")) ||
-      contents.includes(Buffer.from(harnessMarker, "utf8"))
+      contents.includes(Buffer.from(harnessMarker, "utf8")) ||
+      contents.includes(Buffer.from(controlsMarker, "utf8"))
     )
   })
   .map((file) => path.relative(repoRoot, file).replaceAll("\\", "/"))
@@ -146,27 +162,42 @@ if (existsSync(productionExecutable) && existsSync(harnessExecutable)) {
     productionExecutable,
     "tests/harness/proofs.html",
   )
+  const productionControlsPage = containsExecutableMarker(
+    productionExecutable,
+    "tests/harness/controls.html",
+  )
   const productionHarnessDist = containsExecutableMarker(productionExecutable, "dist-harness")
-  const productionHarnessMarker = containsExecutableMarker(productionExecutable, harnessMarker)
+  const productionHarnessMarker =
+    containsExecutableMarker(productionExecutable, harnessMarker) ||
+    containsExecutableMarker(productionExecutable, controlsMarker)
   assert(
-    !productionProofPage && !productionHarnessDist && !productionHarnessMarker,
+    !productionProofPage &&
+      !productionControlsPage &&
+      !productionHarnessDist &&
+      !productionHarnessMarker,
     "Production executable contains harness-only page, output, or marker evidence",
   )
 
   const harnessProofPage = containsExecutableMarker(harnessExecutable, "tests/harness/proofs.html")
+  const harnessControlsPage = containsExecutableMarker(
+    harnessExecutable,
+    "tests/harness/controls.html",
+  )
   const harnessDist = containsExecutableMarker(harnessExecutable, "dist-harness")
   assert(
-    harnessProofPage && harnessDist,
-    "Optimized harness executable does not contain the harness-only proof page and output evidence",
+    harnessProofPage && harnessControlsPage && harnessDist,
+    "Optimized harness executable does not contain the harness-only pages and output evidence",
   )
 
   executableEvidence = {
     productionExecutable,
     productionProofPage,
+    productionControlsPage,
     productionHarnessDist,
     productionHarnessMarker,
     harnessExecutable,
     harnessProofPage,
+    harnessControlsPage,
     harnessDist,
   }
 } else {
@@ -187,7 +218,9 @@ const evidence = {
     directory: harnessDirectory,
     files: harnessFiles,
     proofPagePresent: harnessFiles.includes("tests/harness/proofs.html"),
+    controlsPagePresent: harnessFiles.includes("tests/harness/controls.html"),
     harnessMarkerHits,
+    controlsMarkerHits,
   },
   isolation: {
     productionOnlyFiles,
@@ -202,10 +235,12 @@ writeFileSync(evidencePath, `${JSON.stringify(evidence, null, 2)}\n`)
 console.log("PASS: production build contains exactly one HTML entry (index.html)")
 console.log("PASS: production build contains no harness page, harness path, or harness marker")
 console.log("PASS: production source contains no harness path or harness marker")
-console.log("PASS: optimized harness contains index.html and tests/harness/proofs.html")
-console.log(`PASS: harness marker found in ${harnessMarkerHits.length} harness asset(s)`)
+console.log("PASS: optimized harness contains index.html, proofs.html, and controls.html")
+console.log(
+  `PASS: harness markers found in ${harnessMarkerHits.length} proof and ${controlsMarkerHits.length} controls asset(s)`,
+)
 if (executableEvidence) {
   console.log("PASS: production executable contains no harness page, output, or marker")
-  console.log("PASS: optimized harness executable contains the harness proof page and output")
+  console.log("PASS: optimized harness executable contains the harness proof and controls pages")
 }
 console.log(`Evidence: ${evidencePath}`)

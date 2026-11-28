@@ -44,6 +44,11 @@
   letter-spacing: var(--tracking-control);
 }
 
+.merlin-control-stack {
+  display: grid;
+  gap: var(--panel-padding);
+}
+
 .merlin-control-accent {
   border-color: var(--accent);
   background: var(--accent);
@@ -141,6 +146,87 @@
   font-family: var(--font-mono);
   line-height: 1.55;
   white-space: pre-wrap;
+}
+
+.merlin-input,
+.merlin-textarea-control {
+  width: 100%;
+  min-height: var(--row-height);
+  padding: 6px 8px;
+  border: var(--border-width) solid var(--border-strong);
+  border-radius: var(--radius-control);
+  background: var(--bg-canvas);
+  color: var(--text-primary);
+  letter-spacing: var(--tracking-control);
+}
+
+.merlin-textarea-control {
+  min-height: 96px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.merlin-input::placeholder,
+.merlin-textarea-control::placeholder {
+  color: var(--text-tertiary);
+  opacity: 1;
+}
+
+.merlin-input:disabled,
+.merlin-textarea-control:disabled {
+  border-color: var(--border-hairline);
+  background: var(--bg-surface-2);
+  color: var(--text-disabled);
+}
+
+.merlin-input[aria-invalid="true"],
+.merlin-textarea-control[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+
+.merlin-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay-backdrop);
+}
+
+.merlin-dialog-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  gap: var(--section-padding);
+  width: min(480px, calc(100vw - var(--section-padding) * 2));
+  max-height: calc(100vh - var(--section-padding) * 2);
+  overflow-y: auto;
+  padding: var(--section-padding);
+  transform: translate(-50%, -50%);
+  border: var(--border-width) solid var(--border-strong);
+  border-radius: var(--radius-panel);
+  background: var(--bg-surface-1);
+  box-shadow: var(--shadow-popover);
+  color: var(--text-primary);
+}
+
+.merlin-dialog-header {
+  display: grid;
+  gap: 4px;
+}
+
+.merlin-dialog-header .merlin-section-title {
+  margin: 0;
+}
+
+.merlin-dialog-body {
+  display: grid;
+  gap: var(--panel-padding);
+}
+
+.merlin-dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--panel-padding);
 }
 
 .merlin-status {

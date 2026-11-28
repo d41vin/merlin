@@ -6,16 +6,17 @@ Last updated: 2026-11-28
 
 - **Phase 1, Milestone 4, Checkpoint 2 (M4.2)** is complete. Every required automated gate passes, manual Windows 11 verification passed, and the product owner accepted the checkpoint on 2026-11-28. It is committed locally as `feat: add product shell and navigation`; it is not pushed.
 - M4.2 scope is the product shell, typed three-destination navigation, `PrimaryNavigation`, `PageHeader`, `StatusMessage`, `UnavailableState`, the three honest destination pages, a fixed 240px sidebar, `shell.css`, and settings load/apply in `AppShell`. Sidebar resizing, common controls, proof-harness changes, settings UI, routing, and persistence remain out of scope for M4.2.
-- **Phase 1, Milestone 4, Checkpoint 3 (M4.3)** is implemented and every required automated gate passes. The local commit boundary is `feat: add resizable session sidebar`; it is not pushed. Manual Windows 11 verification and product-owner acceptance are **pending** and are not inferred.
+- **Phase 1, Milestone 4, Checkpoint 3 (M4.3)** is implemented and every required automated gate passes. It is committed locally as `feat: add resizable session sidebar` (`dc5362a`); it is not pushed. Manual Windows 11 verification and product-owner acceptance are **pending** and are not inferred.
 - M4.3 adds the UI SDK resizable sidebar at 240px default with 200–320px pixel bounds, a named keyboard-operable resize handle, 28px navigation items with a 2px active indicator, hover/selected/focus states, session retention across destination changes, and reset to 240px on reload. No width persistence, settings key, IPC, migration, or browser storage is added.
+- **Phase 1, Milestone 4, Checkpoint 4 (M4.4)** is implemented and every required automated gate passes. The local commit boundary is `feat: add minimal common controls`; it is not pushed. Manual Windows 11 verification and product-owner acceptance are **pending** and are not inferred.
+- M4.4 adds `Input`, `Textarea`, `Label`, and `Dialog` as token-styled local wrappers over installed Base UI/native primitives, focused Vitest coverage, a test-only controls harness, Chromium keyboard/focus/dialog/axe coverage, and harness build-isolation updates. The controls are not mounted in the product shell. The controls harness joins the optimized test harness under D-070; production remains single-entry.
 - The development workflow is one primary agent (`merlin`), optional read-only support agents, and local commits at verified slice boundaries. Workflow commit: `b81ccfca35a76bbe7dfae9c84542d0812c04ef73` (`chore: simplify opencode development workflow`).
-- Branch `main`. Before this slice commit, `HEAD` is `caf73a6` (`docs: adopt autonomous operating mandate`); `origin/main` is `3da8bfcf2a3a74ee6ffb93b464f89e9fb46baee7`. The four local commits ahead of the remote are `b81ccfc`, `5c216ad`, `4bcab98`, and `caf73a6`; this slice adds a fifth. No push of any local work has occurred.
+- Branch `main`. Before this slice commit, `HEAD` is `dc5362a` (`feat: add resizable session sidebar`); `origin/main` is `3da8bfcf2a3a74ee6ffb93b464f89e9fb46baee7`. The five local commits ahead of the remote are `b81ccfc`, `5c216ad`, `4bcab98`, `caf73a6`, and `dc5362a`; this slice adds a sixth. No push of any local work has occurred.
 
 ## Next
 
-- Complete M4.3 manual Windows 11 verification when the product owner is available; record acceptance separately. Continue without blocking on it.
-- Implement **M4.4 — minimal common controls and harness**: Input, Textarea, Label, and Dialog over installed Base UI/native primitives, the dev-only controls harness, focused keyboard/focus/ARIA tests, and theme/token validation.
-- Then implement **M4.5 — shell-era Chromium, WebView2, and native integration**, followed by **M4.6 — Phase 1 closure verification and documentation**.
+- Complete M4.3 and M4.4 manual Windows 11 verification when the product owner is available; record acceptance separately. Continue without blocking on it.
+- Implement **M4.5 — shell-era Chromium, WebView2, and native integration**, then **M4.6 — Phase 1 closure verification and documentation**.
 - Continue autonomous implementation of Merlin using the accepted product specifications, architecture, decisions, and roadmap as the source of truth.
 - The primary `merlin` agent owns engineering execution. Read `AGENTS.md`, relevant product documentation, `docs/DECISIONS.md`, and this file before continuing.
 - Independently select the next unblocked vertical slice based on dependencies, technical soundness, and overall product completeness; implementation order may be adjusted when technically justified.
@@ -36,6 +37,17 @@ Last updated: 2026-11-28
 
 ## Last verified
 
+- 2026-11-28 — M4.4 gates, run through `powershell -NoProfile -File scripts/native.ps1` unless noted:
+  - `pnpm format:check` — exit 0; "All matched files use Prettier code style!" and `cargo fmt --check` produced no findings. Prettier initially reported `scripts/verify-build-isolation.mjs` and `src/components/ui/dialog.tsx`; only those files were rewritten.
+  - `pnpm typecheck` — exit 0; `tsc --noEmit` passed for `tsconfig.app.json`, `tsconfig.node.json`, and `tsconfig.harness.json`.
+  - `pnpm lint:frontend` — exit 0; `eslint . --max-warnings=0` produced no findings.
+  - `pnpm test:themes` — exit 0; 74 contrast pairings validated, 1 bundled theme validated, 36 production source files consume registered tokens.
+  - `pnpm test:frontend` — exit 0; 21 test files, 111 tests passed, including Input, Textarea, Label, and Dialog behavior.
+  - `pnpm test:e2e` — exit 0; 8 Chromium tests passed, including "minimal common controls expose labels, focus, disabled/error states, and dialog behavior" with label associations, focus ring and contrast, disabled/invalid states, dialog focus containment, Escape/Close, focus return, axe, no remote requests, and no console errors.
+  - `pnpm build` — exit 0; production build emitted only `dist/index.html`, one CSS asset (21.98 kB), and one JS asset (289.47 kB). The unused control implementations are tree-shaken from the production script.
+  - `pnpm build:harness:frontend` — exit 0; harness build emitted `index.html`, `tests/harness/proofs.html`, `tests/harness/controls.html`, and assets. Vite reported the existing chunk-size warning for the proofs chunk (709.00 kB); the command did not fail.
+  - `pnpm build:test-harness` — exit 0; optimized harness executable rebuilt with both harness pages (SHA256 `6F399240CEA5E4F4B8223532710C28B41EF5151A2BD5DBC05797150F40E51C8F`).
+  - `pnpm verify:build-isolation` — exit 0; production contains exactly one HTML entry and no harness page/path/marker; the harness contains `index.html`, `proofs.html`, and `controls.html`; proof and controls markers are present only in harness assets; both executables passed isolation checks. Evidence: `test-results/build-isolation/evidence.json`.
 - 2026-11-28 — M4.3 gates, all run through `powershell -NoProfile -File scripts/native.ps1`:
   - `pnpm format:check` — exit 0; "All matched files use Prettier code style!" and `cargo fmt --check` produced no findings.
   - `pnpm typecheck` — exit 0; `tsc --noEmit` passed for `tsconfig.app.json`, `tsconfig.node.json`, and `tsconfig.harness.json`.
@@ -71,5 +83,6 @@ Last updated: 2026-11-28
 - Phase 1 M4 scope and approved decisions: `docs/PHASE-1-M4-PLAN.md`, `docs/DECISIONS.md` D-061–D-066.
 - Workflow decision: `docs/DECISIONS.md` D-068 (supersedes D-067).
 - Autonomous roadmap execution: `docs/DECISIONS.md` D-069.
+- Test-only controls harness boundary: `docs/DECISIONS.md` D-070.
 - Phase 2 remains documented in `docs/PHASE-2-PLAN.md`. It begins after Phase 1 closure under D-069.
 - Read `AGENTS.md` before resuming.
