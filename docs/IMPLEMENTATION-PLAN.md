@@ -142,15 +142,16 @@ Acceptance:
 - Existing frontend, native, Chromium, WebView2, accessibility, production packaging, test-harness, settings, security, and production-boundary gates pass.
 - Workflow-equivalent steps pass locally; hosted CI is explicitly unverified until actually executed under separate authorization.
 
-### Milestone 4 — Application shell, navigation, common controls, and Phase 1 closure (required; Checkpoints 1–2 accepted; Checkpoints 3–6 proceed under D-069)
+### Milestone 4 — Application shell, navigation, common controls, and Phase 1 closure (required; automated closure complete; manual acceptance and hosted CI pending)
 
-Phase 1 is not complete. The Phase 1 build list requires a Tauri/React shell, Overview/Projects/Resources navigation, and common controls and layout primitives. Milestones 1–3 delivered identity, settings, and the design system, but the normal React surface is still the Phase 0 technical-preflight proof. Milestone 4 is the remaining Phase 1 work, not new product scope.
+Phase 1 automated closure is complete. The shell, navigation, boundary tests, lint, tests, and related build gates pass; manual Windows 11 acceptance and hosted CI for a pushed commit remain pending. Milestones 1–3 delivered identity, settings, and the design system; Milestone 4 delivered the shell, navigation, sidebar, minimal controls, harness relocation, and closure evidence.
 
-The finalized dependency-aware plan, file map, proof relocation, and approved decisions M4-D1–M4-D6 are in `docs/PHASE-1-M4-PLAN.md`. Checkpoint 1 was authorized and completed; Checkpoint 2 was separately authorized, manually accepted, and committed on 2026-11-28. Under D-069, Checkpoints 3–6 and subsequent roadmap work proceed autonomously within the approved scope; manual acceptance is recorded separately and never inferred.
+The finalized dependency-aware plan, file map, proof relocation, and approved decisions M4-D1–M4-D6 are in `docs/PHASE-1-M4-PLAN.md`. Checkpoint 1 was authorized and completed; Checkpoint 2 was separately authorized, manually accepted, and committed on 2026-11-28. Checkpoints 3–5 are implemented and verified under D-069; Checkpoint 6 records Phase 1 automated closure. Manual Windows 11 acceptance and hosted CI for a pushed commit remain pending and are never inferred.
 
 Approved scope:
 
-- Replace the Phase 0 proof surface with the product shell. The normal application must not describe itself as a technical preflight or say that it is not a product screen.- Add a persistent left navigation for exactly Overview, Projects, Resources. Default width 240px; resizable within 200–320px using the approved UI SDK resizable primitive rather than a second layout implementation. Items are 28px high with a 2px active indicator and clear hover, focus, and selected states. Sidebar width is session-only and resets to 240px on restart; it is not persisted in settings, SQLite layout data, or browser storage.
+- Replace the Phase 0 proof surface with the product shell. The normal application must not describe itself as a technical preflight or say that it is not a product screen.
+- Add a persistent left navigation for exactly Overview, Projects, Resources. Default width 240px; resizable within 200–320px using the approved UI SDK resizable primitive rather than a second layout implementation. Items are 28px high with a 2px active indicator and clear hover, focus, and selected states. Sidebar width is session-only and resets to 240px on restart; it is not persisted in settings, SQLite layout data, or browser storage.
 - Use keyboard-operable destinations with accessible names, visible focus, and an active state exposed to assistive technology. Preserve focus when destinations change and respect reduced-motion preferences.
 - Add the shell and common-control foundations owned by shadcn/Base UI: application frame, page and section headers, content regions, status/unavailable presentation, and the approved M4-D1 minimal control set: existing Button plus Input, Textarea, Label, and Dialog for the immediate P2-M1 consumer. Defer Checkbox, Select, Tabs, Menus, Tooltips, Field, AlertDialog, and the other listed controls until a concrete consumer exists. UI SDK and shadcn/Base UI must not own the same interaction primitive.
 - Show an explicit unavailable/not-yet-implemented state for Overview, Projects, and Resources content. Do not fabricate project records, resources, activity, metrics, or usage data to fill the shell, and do not add controls that imply unavailable workflows. Their product workflows remain Phase 3–5.
@@ -166,7 +167,7 @@ Acceptance:
 - Sidebar width defaults to 240px and stays within 200–320px; navigation uses the documented item height and active indicator; no arbitrary destination rearrangement or sidebar-width persistence is introduced.
 - Components consume semantic tokens only; the minimal control set is keyboard/focus/ARIA tested; and the normal product surface contains no proof-only labeling, fabricated data, or controls implying unavailable workflows.
 - Phase 0 security/rendering assertions remain executable through the approved proof harness; the optimized-harness Option B build is approved and preserves the existing proof assertions.
-- Phase 1 acceptance in this document is met, including local and CI contrast validation, and all existing settings, theme, security, packaging, and test-harness gates remain green.
+- Phase 1 local and automated acceptance in this document is met, including local contrast validation; hosted CI for a pushed milestone commit remains pending.
 - Hosted CI passes for the milestone commit. Hosted CI does not run real WebView2, NSIS packaging, or the production-boundary gates; those remain separate local Windows gates.
 
 Verification gates:
@@ -178,11 +179,11 @@ Verification gates:
 - **Accessibility:** navigation and minimal controls have accessible names, visible focus, keyboard operation, active-state announcement, dialog focus management, and reduced-motion behavior where animated.
 - **Windows build:** Windows 11 debug launch and production-feature packaged build succeed with the harness excluded.
 
-Milestone 4 implementation proceeds under the autonomous operating mandate (D-069): Checkpoints 3–6 are unblocked within the approved milestone scope. Phase 2 starts only after Phase 1 closure gates pass.
+Milestone 4 automated closure is complete under the autonomous operating mandate (D-069). Manual Windows 11 acceptance and hosted CI for a pushed commit remain pending. Phase 2 implementation proceeds under D-069; the pending external checks are recorded and never inferred.
 
 ## Phase 2 — Docs and Vault
 
-**Planning status (2026-11-28):** Planned and sequenced; implementation begins after Phase 1 Milestone 4 passes its closure gates, under D-069. The detailed milestone plan is in `docs/PHASE-2-PLAN.md`. M4-D5 Option B is approved. The summary below remains the authoritative Phase 2 outcome contract; the detailed plan may not weaken it.
+**Planning status (2026-11-28):** Planned and sequenced. Phase 1 Milestone 4 automated closure gates pass; manual acceptance and hosted CI remain pending. Under D-069, Phase 2 implementation proceeds with those pending checks recorded. The detailed milestone plan is in `docs/PHASE-2-PLAN.md`. M4-D5 Option B and D-070 are recorded. The summary below remains the authoritative Phase 2 outcome contract; the detailed plan may not weaken it.
 
 Phase 2 includes the minimum stable project identity, optional repository connection, and Docs-root registration that Docs requires. Phase 3 extends those records into the full Projects area; it must not create a second project identity. The rest of the Phase 2 build list below remains unchanged.
 

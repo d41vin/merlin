@@ -1,9 +1,16 @@
 # Phase 2 — Docs and Vault Milestone Plan
 
-Status: **Proposed; not authorized.** This document sequences Phase 2 work. It does not
-authorize implementation, dependency changes, migrations, or product code.
+Status: **Planned; implementation proceeds under D-069 after Phase 1 automated closure.** Phase 1
+manual Windows 11 acceptance and hosted CI for a pushed commit remain pending and are recorded
+separately. This document sequences Phase 2 work and may not weaken the authoritative product
+contract.
 
 Date: 2026-11-26
+
+Status update 2026-11-28: Phase 1 Milestone 4 automated closure is complete. The product shell,
+navigation, session-only sidebar, minimal controls, proof/controls harnesses, real WebView2 checks,
+production packaging, and production-boundary checks pass. Under D-069, Phase 2 implementation
+begins without waiting for manual acceptance; acceptance and hosted CI are never inferred.
 
 Authoritative requirements:
 
@@ -17,20 +24,21 @@ Authoritative requirements:
 
 ## 1. Entry conditions
 
-Phase 2 must not begin until all of the following are true:
+Phase 2 entry conditions:
 
 1. Phase 1 Milestone 4 — Application shell, navigation, common controls, and Phase 1 closure —
-   has passed its acceptance gates. The plan is in `docs/PHASE-1-M4-PLAN.md`. Only Checkpoint 1
-   is authorized; the product shell, navigation, sidebar, minimal controls, and Phase 1 closure
-   are not implemented yet.
+   has passed its automated closure gates. **Met.** Checkpoints 1–2 are accepted; 3–6 are verified;
+   the closure evidence is recorded in `BUILD-STATUS.md`. Manual Windows 11 acceptance and hosted CI
+   for a pushed commit remain pending and are recorded separately, not inferred.
 2. Hosted CI is green for the pushed `main` commit. It is green for `d1a4864` (both jobs); after the
-   M4 milestone commit is pushed, hosted CI must be green for that commit as well. Hosted CI runs
-   frontend, Chromium, and native checks but does not run real WebView2, NSIS packaging, or the
-   production-boundary gates.
-3. The user has approved this milestone sequence and the scope boundary in §2.
-4. Any open decisions listed in §6 that block the first milestone have been resolved.
-5. M4-D5 **Option B** has been approved and recorded (2026-11-26), so P2-M1 inherits a stable
-   test/build boundary once the remaining M4 checkpoints pass.
+   M4 milestone commit is pushed, hosted CI must be green for that commit as well. **Pending:** push
+   is unauthorized, so this remains unverified and does not block local implementation under D-069.
+3. The milestone sequence and scope boundary in §2 are accepted. D-069 authorizes ordinary
+   implementation decisions; consequential scope changes still require product-owner direction.
+4. Any open decisions listed in §6 that block the first milestone are resolved before that
+   milestone's implementation.
+5. M4-D5 **Option B** and D-070 are recorded, so P2-M1 inherits a stable test/build boundary.
+   **Met.**
 
 ## 2. Scope boundary
 
@@ -1119,9 +1127,10 @@ features with acceptance.
 
 These require explicit resolution before the affected milestone:
 
-1. **Phase 1 M4 authorization.** The M4 decisions M4-D1–M4-D6 and Option B are approved, and
-   Checkpoint 1 is authorized. Checkpoints 2–6 remain unauthorized and Phase 1 is not complete.
-   M4 must pass its acceptance gates before Phase 2.
+1. **Phase 1 M4 status.** The M4 decisions M4-D1–M4-D6, Option B, and D-070 are recorded.
+   Checkpoints 1–2 are accepted; Checkpoints 3–6 are implemented and automatically verified with
+   Phase 1 automated closure evidence in `BUILD-STATUS.md`. Manual Windows 11 acceptance and hosted
+   CI for a pushed commit remain pending and do not block local Phase 2 implementation under D-069.
 2. **Minimal Phase 2 Projects surface.** P2-M1 proposes a minimal project create/select and Docs-
    registration surface. Phase 3 will expand it into the full Projects area. If this boundary is
    not approved, Phase 2 needs a different, explicitly approved entry point.

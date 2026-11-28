@@ -30,6 +30,12 @@ It is designed for one person's real workflow, not as a generic team productivit
 
 Pin dependency versions. The Phase 0 compatibility baseline is Windows 11, Node.js 24.22.1, pnpm 12.15.0, and Rust 1.97.1. Verify the selected package versions against that baseline during technical preflight; do not downgrade a tool without a demonstrated compatibility reason recorded in `docs/DECISIONS.md`.
 
+## Current status
+
+Phase 0 technical proofs and the Phase 1 shell foundation are implemented. The normal application renders the Overview, Projects, and Resources shell with three honest unavailable states, saved display settings, a session-only resizable sidebar, and the minimal common-control foundation. The Phase 1 closure automated gates pass, including real WebView2, optimized-harness, production packaging, and production-boundary checks. Manual Windows 11 acceptance and hosted CI for a pushed commit remain pending; Phase 1 is not claimed as product-owner accepted.
+
+Phase 2 (Docs and Vault) is the next implementation phase under the autonomous operating mandate (D-069). See `BUILD-STATUS.md` for current operational state and exact verification evidence.
+
 ## Repository structure
 
 ```text
@@ -70,30 +76,29 @@ Prerequisites:
 
 Initial setup commands:
 
-```bash
-pnpm install
-pnpm setup:rust
-pnpm exec playwright install chromium
-pnpm tauri dev
+```powershell
+powershell -NoProfile -File scripts/native.ps1 pnpm install
+powershell -NoProfile -File scripts/native.ps1 pnpm exec playwright install chromium
 ```
 
-Native commands use the exact Rust 1.97.1 toolchain and Cargo cache under the ignored `.tools/` directory. `pnpm setup:rust` creates that isolated toolchain; do not substitute a different compiler.
+Do not run `pnpm setup:rust`; the verified Windows path uses the installed stable Rust 1.97.1 toolchain and the repository's process-scoped `scripts/native.ps1` wrapper. Native or verification commands must run through that wrapper:
 
-Useful checks:
+```powershell
+powershell -NoProfile -File scripts/native.ps1 pnpm tauri dev
+```
 
-```bash
-pnpm format:check
-pnpm typecheck
-pnpm lint
-pnpm test
-pnpm test:themes
-pnpm test:e2e
-pnpm generate:themes
-pnpm build
-pnpm tauri build --features custom-protocol,production --no-binary-patching
-pnpm build:test-harness
-pnpm verify:production-boundary
-pnpm test:webview2
+Useful checks, all through the native wrapper:
+
+```powershell
+powershell -NoProfile -File scripts/native.ps1 pnpm format:check
+powershell -NoProfile -File scripts/native.ps1 pnpm typecheck
+powershell -NoProfile -File scripts/native.ps1 pnpm lint
+powershell -NoProfile -File scripts/native.ps1 pnpm test
+powershell -NoProfile -File scripts/native.ps1 pnpm test:e2e
+powershell -NoProfile -File scripts/native.ps1 pnpm test:webview2
+powershell -NoProfile -File scripts/native.ps1 pnpm tauri build --features custom-protocol,production --no-binary-patching
+powershell -NoProfile -File scripts/native.ps1 pnpm build:test-harness
+powershell -NoProfile -File scripts/native.ps1 pnpm verify:production-boundary
 ```
 
 Edit `src/themes/*.tokens.json` rather than generated theme CSS, then run `pnpm generate:themes`. Ordinary `pnpm test:themes` and `pnpm build` validation is read-only and fails on manifest, completeness, contrast, generated-CSS, density, registry, or scoped production token-usage drift.
@@ -102,7 +107,7 @@ Production packaging must explicitly select `custom-protocol,production`; do not
 
 The separately targeted optimized harness is `src-tauri/target/test-harness/release/merlin-test-harness.exe` and is not a distributable application. Real WebView2 tests use only development/optimized harnesses with isolated synthetic data.
 
-The scripts are backed by the configured Phase 0 tools. `BUILD-STATUS.md` records their actual verification outcomes and the limits of each proof.
+The scripts use the verified Windows toolchain and record their actual outcomes in `BUILD-STATUS.md`, including the limits of each proof.
 
 ## Documentation index
 
@@ -116,8 +121,8 @@ The scripts are backed by the configured Phase 0 tools. `BUILD-STATUS.md` record
 - [Security](docs/SECURITY.md)
 - [UI stack and library integration](docs/UI-STACK.md)
 - [Implementation plan](docs/IMPLEMENTATION-PLAN.md)
-- [Phase 1 Milestone 4 shell plan](docs/PHASE-1-M4-PLAN.md) (decisions and Option B approved; Checkpoint 1 authorized; Checkpoints 2–6 not authorized)
-- [Phase 2 Docs and Vault plan](docs/PHASE-2-PLAN.md) (proposed, not authorized)
+- [Phase 1 Milestone 4 shell plan](docs/PHASE-1-M4-PLAN.md) (automated closure complete; M4.3–M4.6 manual acceptance and hosted CI pending)
+- [Phase 2 Docs and Vault plan](docs/PHASE-2-PLAN.md) (next phase under D-069; hosted CI and Phase 1 manual acceptance remain pending)
 - [Decision log](docs/DECISIONS.md)
 
 ## Product boundaries

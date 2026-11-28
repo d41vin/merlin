@@ -10,16 +10,17 @@ Last updated: 2026-11-28
 - M4.3 adds the UI SDK resizable sidebar at 240px default with 200–320px pixel bounds, a named keyboard-operable resize handle, 28px navigation items with a 2px active indicator, hover/selected/focus states, session retention across destination changes, and reset to 240px on reload. No width persistence, settings key, IPC, migration, or browser storage is added.
 - **Phase 1, Milestone 4, Checkpoint 4 (M4.4)** is implemented and every required automated gate passes. It is committed locally as `feat: add minimal common controls` (`6712686`); it is not pushed. Manual Windows 11 verification and product-owner acceptance are **pending** and are not inferred.
 - M4.4 adds `Input`, `Textarea`, `Label`, and `Dialog` as token-styled local wrappers over installed Base UI/native primitives, focused Vitest coverage, a test-only controls harness, Chromium keyboard/focus/dialog/axe coverage, and harness build-isolation updates. The controls are not mounted in the product shell. The controls harness joins the optimized test harness under D-070; production remains single-entry.
-- **Phase 1, Milestone 4, Checkpoint 5 (M4.5)** is implemented and every required automated gate passes. The local commit boundary is `test: verify phase 1 shell integration`; it is not pushed. Manual Windows 11 verification and product-owner acceptance are **pending** and are not inferred.
+- **Phase 1, Milestone 4, Checkpoint 5 (M4.5)** is implemented and every required automated gate passes. It is committed locally as `test: verify phase 1 shell integration` (`6dc118b`); it is not pushed. Manual Windows 11 verification and product-owner acceptance are **pending** and are not inferred.
 - M4.5 proves the shell in real WebView2 development and optimized-harness builds: shell startup, settings IPC, sidebar bounds and destination retention, reload/restart reset to 240px, unchanged four-panel layout, proof-harness persistence across restart, and persisted density/reduced-motion application. Settings rejection and no-reflection assertions remain intact.
+- **Phase 1, Milestone 4, Checkpoint 6 (M4.6)** records Phase 1 automated closure. Every local gate passes, including production packaging and production-boundary checks. The local commit boundary is `docs: record phase 1 milestone 4 closure`; it is not pushed. Manual Windows 11 acceptance and hosted CI for a pushed commit remain **pending** and are not inferred.
+- Phase 1 is therefore **automatically verified but not product-owner accepted and not hosted-CI verified**. Phase 2 implementation proceeds under D-069 while those external checks remain pending.
 - The development workflow is one primary agent (`merlin`), optional read-only support agents, and local commits at verified slice boundaries. Workflow commit: `b81ccfca35a76bbe7dfae9c84542d0812c04ef73` (`chore: simplify opencode development workflow`).
-- Branch `main`. Before this slice commit, `HEAD` is `6712686` (`feat: add minimal common controls`); `origin/main` is `3da8bfcf2a3a74ee6ffb93b464f89e9fb46baee7`. The six local commits ahead of the remote are `b81ccfc`, `5c216ad`, `4bcab98`, `caf73a6`, `dc5362a`, and `6712686`; this slice adds a seventh. No push of any local work has occurred.
+- Branch `main`. Before this closure commit, `HEAD` is `6dc118b` (`test: verify phase 1 shell integration`); `origin/main` is `3da8bfcf2a3a74ee6ffb93b464f89e9fb46baee7`. The seven local commits ahead of the remote are `b81ccfc`, `5c216ad`, `4bcab98`, `caf73a6`, `dc5362a`, `6712686`, and `6dc118b`; this closure adds an eighth. No push of any local work has occurred.
 
 ## Next
 
-- Complete M4.3–M4.5 manual Windows 11 verification when the product owner is available; record acceptance separately. Continue without blocking on it.
-- Implement **M4.6 — Phase 1 closure verification and documentation**: run the full §10/§11 matrix, production packaging and production-boundary checks, record exact results, update `README.md` and the Phase 2 entry conditions, and declare Phase 1 complete only if every gate passes.
-- Then begin Phase 2 implementation under D-069 using `docs/PHASE-2-PLAN.md`.
+- Begin **Phase 2, P2-M1 — project identity, registration, and Project Store foundation** using `docs/PHASE-2-PLAN.md`, `docs/DOCS-AND-VAULT.md`, and the accepted data/security contracts. Preserve Phase 1 settings, layout, shell, and proof/controls harnesses.
+- Continue autonomous implementation under D-069. Complete M4.3–M4.6 manual Windows 11 acceptance and hosted CI when the product owner is available; record them separately and never infer them.
 - Continue autonomous implementation of Merlin using the accepted product specifications, architecture, decisions, and roadmap as the source of truth.
 - The primary `merlin` agent owns engineering execution. Read `AGENTS.md`, relevant product documentation, `docs/DECISIONS.md`, and this file before continuing.
 - Independently select the next unblocked vertical slice based on dependencies, technical soundness, and overall product completeness; implementation order may be adjusted when technically justified.
@@ -33,6 +34,7 @@ Last updated: 2026-11-28
 ## Blocked
 
 - No current implementation blocker.
+- Phase 1 manual Windows 11 acceptance and hosted CI for a pushed commit are pending; they do not block Phase 2 implementation under D-069.
 - `scripts/native.ps1` provides the verified process-scoped pnpm and native environment.
 - The machine-wide pnpm launcher remains broken (`C:\Program Files\nodejs\node_modules\pnpm\pnpm.exe` is missing). Continue using `scripts/native.ps1`. Do not make machine-wide changes without explicit authorization.
 - Escalate only when a fundamental product-direction decision is required, an existing security/privacy/data-integrity requirement must change, a destructive or irreversible operation is necessary, money must be spent, something must be published externally, a required verification gate cannot run, repeated credible attempts cannot resolve a blocker, or specifications cannot reasonably resolve a consequential product tradeoff.
@@ -40,6 +42,22 @@ Last updated: 2026-11-28
 
 ## Last verified
 
+- 2026-11-28 — M4.6 Phase 1 automated closure, run through `powershell -NoProfile -File scripts/native.ps1` unless noted:
+  - `pnpm format:check` — exit 0; Prettier passed and `cargo fmt --check` produced no findings.
+  - `pnpm typecheck` — exit 0; all three TypeScript projects passed.
+  - `pnpm lint` — exit 0; frontend ESLint had zero warnings; default and harness Clippy passed with `-D warnings`.
+  - `pnpm test:themes` — exit 0; 74 contrast pairings validated, 1 bundled theme validated, 36 production source files consume registered tokens.
+  - `pnpm test:frontend` — exit 0; 21 test files, 111 tests passed.
+  - `pnpm test:e2e` — exit 0; 8 Chromium tests passed.
+  - `pnpm test:webview2` — exit 0; 2 real WebView2 tests passed in 1.0m, covering development shell/settings/sidebar, native proof-harness persistence and restart, settings rejection/no-reflection, optimized-harness shell/IPC/persistence, and no console errors.
+  - `pnpm test:rust` — exit 0; 33 tests passed, 0 failed.
+  - `pnpm test:rust:harness` — exit 0; 36 tests passed, 0 failed.
+  - `pnpm build:test-harness` — exit 0; optimized harness reconstructed with `index.html`, `proofs.html`, and `controls.html`; SHA256 `6F399240CEA5E4F4B8223532710C28B41EF5151A2BD5DBC05797150F40E51C8F`.
+  - `pnpm tauri build --features custom-protocol,production --no-binary-patching` — exit 0; production executable built, pre-bundle marker verification passed, NSIS installer generated at `src-tauri/target/release/bundle/nsis/Merlin_0.1.0_x64-setup.exe` (3,152,123 bytes, SHA256 `1572F989DB0C1398AEC5268600B875438DBFEF31C6F77739E7F27F57783702B0`). Production executable SHA256 `0A677AAB42140E9CDFE74F660A45F4824282DC7E87FDC54148C518CF24EFEACC`.
+  - `pnpm verify:build-isolation` — exit 0; production has exactly one HTML entry and no harness page/path/marker; the harness contains `index.html`, `proofs.html`, and `controls.html`; proof and controls markers are confined to harness assets; both executables passed.
+  - `pnpm verify:production-boundary` — exit 0; all eight production-boundary gates passed, including production-feature resolver rejection, production/test-harness conflict rejection, unauthorized harness rejection, incomplete production-feature rejection, binary marker scans, installer regeneration, and harness exclusion. Evidence: `test-results/production-boundary/evidence.json`. A stale Phase 0 `Merlin Preflight` installer was removed from the ignored bundle directory before the final evidence run; the current installer is the only bundle artifact.
+  - Log-path finding: no product log-path setting, command, schema column, or logging framework exists in `src/` or `src-tauri/src/`. The only process log is the test-harness output at ignored `test-results/webview2/process.log`. Production source contains no `localStorage`, `sessionStorage`, IndexedDB, cookie, or `autoSaveId` usage; matches are limited to tests and a proof comment.
+  - Manual Windows 11 acceptance and hosted CI remain **unverified**. `gh` is not installed and push is unauthorized, so hosted `frontend-theme`/`native` jobs cannot be queried for these local commits.
 - 2026-11-28 — M4.5 gates, run through `powershell -NoProfile -File scripts/native.ps1`:
   - `pnpm format:check` — exit 0; Prettier passed and `cargo fmt --check` produced no findings.
   - `pnpm typecheck` — exit 0; all three TypeScript projects passed.
@@ -97,5 +115,6 @@ Last updated: 2026-11-28
 - Workflow decision: `docs/DECISIONS.md` D-068 (supersedes D-067).
 - Autonomous roadmap execution: `docs/DECISIONS.md` D-069.
 - Test-only controls harness boundary: `docs/DECISIONS.md` D-070.
-- Phase 2 remains documented in `docs/PHASE-2-PLAN.md`. It begins after Phase 1 closure under D-069.
+- Phase 1 automated closure evidence: `BUILD-STATUS.md`, `test-results/build-isolation/evidence.json`, `test-results/production-boundary/evidence.json`.
+- Phase 2 begins at P2-M1 under D-069 while Phase 1 manual acceptance and hosted CI remain pending.
 - Read `AGENTS.md` before resuming.

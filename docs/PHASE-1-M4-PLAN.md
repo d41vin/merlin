@@ -2,10 +2,9 @@
 
 Status: **Decisions M4-D1–M4-D6 approved 2026-11-26. Checkpoint 1 (M4.1) authorized 2026-11-26;
 Checkpoint 2 (M4.2) authorized 2026-11-28 and accepted 2026-11-28. Checkpoints 3 (M4.3), 4
-(M4.4), and 5 (M4.5) implemented and automatically verified under the autonomous operating mandate
-(D-069); manual Windows 11 acceptance is pending. Checkpoint 6 proceeds under D-069 without
-separate approval.** This document does not authorize dependency changes, migrations, IPC changes,
-or pushes.
+(M4.4), and 5 (M4.5) implemented and automatically verified; Checkpoint 6 records automated closure.
+Product-owner manual Windows 11 acceptance and hosted CI for a pushed commit remain pending under
+D-069.** This document does not authorize dependency changes, migrations, IPC changes, or pushes.
 
 Status update 2026-11-28: The product owner authorized M4 Checkpoint 2 (M4.2) with the words
 "M4 Checkpoint 2 is authorized" and approved the execution envelope. Implementation is present in
@@ -28,6 +27,13 @@ included in the optimized harness under D-070; production remains single-entry.
 Status update 2026-11-28: Checkpoint 5 (M4.5) is implemented and automatically verified, including
 the real WebView2 development and optimized-harness suites. Manual Windows 11 acceptance is pending
 and is not inferred. The local commit boundary is `test: verify phase 1 shell integration`; no push
+is authorized.
+
+Status update 2026-11-28: Checkpoint 6 (M4.6) records Phase 1 automated closure. Formatting, types,
+lint, themes, unit, Chromium, real WebView2, native default/harness tests, production packaging,
+build isolation, and all production-boundary gates pass with evidence in `BUILD-STATUS.md` and
+`test-results/`. Manual Windows 11 acceptance and hosted CI for a pushed commit remain pending and
+are not inferred. The local commit boundary is `docs: record phase 1 milestone 4 closure`; no push
 is authorized.
 
 Date: 2026-11-26
@@ -450,14 +456,13 @@ feature-guard branch to the product application.
 ## 9. Checkpoints
 
 Each checkpoint is a candidate commit boundary. Checkpoint 1 and Checkpoint 2 were separately
-authorized; Checkpoints 3–5 are implemented and verified under D-069. Checkpoint 6 proceeds under
-D-069 without separate approval. Do not push any checkpoint without separate authorization. Hosted
-CI is required for the final milestone commit.
+authorized; Checkpoints 3–6 are implemented and verified under D-069. Do not push any checkpoint
+without separate authorization. Hosted CI is required for the final milestone commit.
 
 > **2026-11-28:** D-069 supersedes the per-checkpoint authorization gate. Checkpoint 2 was accepted;
-> Checkpoints 3–5 are implemented and automatically verified with manual acceptance pending.
-> Checkpoint 6 continues autonomously within the approved milestone scope. The local commit
-> prohibition for Checkpoint 2 is superseded by its accepted commit `4bcab98`.
+> Checkpoints 3–6 are implemented and automatically verified with manual acceptance and hosted CI
+> pending. No push is authorized. The local commit prohibition for Checkpoint 2 is superseded by
+> its accepted commit `4bcab98`.
 
 Six checkpoints are retained because proof relocation, shell/navigation, sidebar behavior, minimal
 controls, cross-boundary integration, and closure each have a distinct acceptance gate and commit
@@ -782,6 +787,12 @@ before/after layout comparisons, canary checks, and documented environment recov
 
 ### M4.6 — Phase 1 closure verification and documentation
 
+**Status 2026-11-28:** Automated closure complete under D-069. Formatting, typecheck, lint, themes,
+unit, Chromium, real WebView2, native default/harness tests, production packaging, build isolation,
+and production-boundary gates pass; exact evidence is recorded in `BUILD-STATUS.md`. Manual Windows
+11 acceptance and hosted CI for a pushed commit are **pending** and are not inferred. The local
+commit boundary is `docs: record phase 1 milestone 4 closure`; no push is authorized.
+
 **Objective:** Close the remaining Phase 1 gates and record exact results.
 
 **Scope:**
@@ -866,6 +877,11 @@ the production-boundary gates.
 | Windows 11                         | Phase 1 gate                                    | Debug launch and production-feature packaged build succeed                                                                   | Manual Windows 11                                   |
 | Hosted CI                          | `IMPLEMENTATION-PLAN.md` M4                     | Both jobs green for the pushed M4 commit; no WebView2 claim                                                                  | Hosted GitHub Actions                               |
 | Documentation/status               | Change discipline                               | `BUILD-STATUS.md`, README, M4 plan, and Phase 2 entry conditions match the achieved state                                    | Review                                              |
+
+> **2026-11-28 closure status:** Every local/automated row above has recorded evidence. The
+> hosted-CI row and the product-owner manual Windows 11 acceptance remain pending; Phase 1 is not
+> declared product-owner accepted. Phase 2 local implementation proceeds under D-069 while those
+> external checks stay explicitly unverified.
 
 ## 11. Test plan and exact commands
 
@@ -987,11 +1003,11 @@ Not authorized by the 2026-11-26 approval:
   build-boundary change.
 
 > **2026-11-28 status update:** D-069 supersedes the per-checkpoint authorization gates.
-> Checkpoint 2 was separately authorized and accepted. Checkpoint 3 is implemented and verified
-> under D-069 with manual acceptance pending. Checkpoints 4–6 and subsequent roadmap milestones
-> proceed autonomously within the accepted product requirements. Push remains unauthorized. The
-> Checkpoint 1 push prohibition is superseded by verified remote history: `1cdb814` is present in
-> `origin/main` via `3da8bfc`.
+> Checkpoint 2 was separately authorized and accepted. Checkpoints 3–6 are implemented and
+> automatically verified, with Phase 1 automated closure evidence recorded in `BUILD-STATUS.md`.
+> Manual Windows 11 acceptance and hosted CI for a pushed commit remain pending; no push is
+> authorized. The next roadmap work proceeds under D-069. The Checkpoint 1 push prohibition is
+> superseded by verified remote history: `1cdb814` is present in `origin/main` via `3da8bfc`.
 
 ## 17. Stop conditions
 
