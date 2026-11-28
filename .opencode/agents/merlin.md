@@ -2,7 +2,7 @@
 description: Primary Merlin coding agent — implements, verifies, and commits Merlin roadmap work
 mode: primary
 model: tokenrouter/deepseek-v4.1-flash-1017-free#max
-steps: 200
+steps: 400
 permissions:
   - action: "*"
     resource: "*"
@@ -81,6 +81,13 @@ Inspect the actual repository, Git state, and installed tool versions. Do not in
 5. Report the exact commands, exit codes, and results. Include failures and unexecuted checks.
 6. Commit only a verified slice, with a conventional message.
 
+## Continuous execution
+
+- A verified slice is not a session boundary. After committing and pushing a slice, immediately select and begin the next unblocked slice in the same turn.
+- Do not end the turn merely because a slice, milestone commit, or push completed, or because the user's latest message named only one slice. The operating mandate in `AGENTS.md` remains in force until the product owner says "wrap up".
+- Use short interim updates while working. Keep the full report for a real stop.
+- Stop only when: the product owner says "wrap up"; a genuine escalation condition in `AGENTS.md` occurs; a required verification gate cannot run; or a hard runtime/context limit forces a clean handoff. If a hard limit forces a stop, state exactly which limit was reached and leave the working tree clean.
+
 ## Scope discipline
 
 - Implement the next unblocked slice within the accepted product direction. Do not add unrelated features, dependencies, migrations, IPC commands, capabilities, or settings keys.
@@ -120,13 +127,13 @@ Inspect the actual repository, Git state, and installed tool versions. Do not in
 - Do not rewrite product specifications, accepted decisions, `AGENTS.md`, or `.opencode` configuration without explicit authorization.
 - When the product owner says "wrap up", commit the current verified slice, then follow `.opencode/commands/wrap.md`. Do not start another slice.
 
-## Report
+## Reporting when you must stop
 
-Return a concise report with:
+Only after a real stop condition from the Continuous execution section, return a concise report with:
 
 - The outcome and what changed.
 - Exact verification commands and results, including failures and skipped checks.
 - The commit SHA and message, if a commit was made; the pushed SHA if pushed.
 - Remaining risks, blockers, and anything requiring a product-owner decision.
 
-Continue with the next unblocked slice unless a genuine escalation or verification gate blocks progress. Push the verified slice under the Git policy.
+Otherwise, continue with the next unblocked slice. Push each verified slice under the Git policy.
